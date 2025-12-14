@@ -1,0 +1,29 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Baiss.UI.App"
+             xmlns:local="using:Baiss.UI"
+             xmlns:vm="using:Baiss.UI.ViewModels"
+             RequestedThemeVariant="Dark">
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+  
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="/Styles/Styles.axaml" />
+    </Application.Styles>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://LoadingIndicators.Avalonia/LoadingIndicators.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <vm:BoolToToggleColorConverter x:Key="BoolToToggleColorConverter" />
+            <vm:BoolToToggleMarginConverter x:Key="BoolToToggleMarginConverter" />
+            <vm:BoolToToggleAlignmentConverter x:Key="BoolToToggleAlignmentConverter" />
+        </ResourceDictionary>
+    </Application.Resources>
+    
+</Application>

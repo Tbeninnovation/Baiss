@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Baiss.Domain\Baiss.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Quartz" Version="3.15.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework> <!-- net9.0 ===> net8.0 -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <SupportedOSPlatformVersion>10.15</SupportedOSPlatformVersion> <!-- added -->
+    <RuntimeIdentifiers>osx-x64;osx-arm64</RuntimeIdentifiers>     <!-- added -->
+    <PublishSingleFile>true</PublishSingleFile>                    <!-- added -->
+    <PublishReadyToRun>true</PublishReadyToRun>                    <!-- added -->
+    <SelfContained>true</SelfContained>                            <!-- added -->
+
+
+  </PropertyGroup>
+
+
+</Project>

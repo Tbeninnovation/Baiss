@@ -1,0 +1,103 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework> <!-- net9.0 ===> net8.0 -->
+    <Nullable>enable</Nullable>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <SupportedOSPlatformVersion>10.15</SupportedOSPlatformVersion> <!-- added -->
+    <RuntimeIdentifiers>win-x64;win-arm64;osx-x64;osx-arm64;linux-x64;linux-arm64</RuntimeIdentifiers>     <!-- added -->
+    <PublishSingleFile>true</PublishSingleFile>                    <!-- added -->
+    <PublishReadyToRun>true</PublishReadyToRun>                    <!-- added -->
+    <SelfContained>true</SelfContained>                            <!-- added -->
+    <!-- Enable BinaryFormatter for Python.NET compatibility -->
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+  </PropertyGroup>
+
+  <!-- Windows: No console window in Release, console in Debug -->
+  <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('win')) AND '$(Configuration)' == 'Release'">
+    <OutputType>WinExe</OutputType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('win')) AND '$(Configuration)' == 'Debug'">
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <!-- macOS/Linux: Always Exe (no console concept) -->
+  <PropertyGroup Condition="!$(RuntimeIdentifier.StartsWith('win'))">
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <!-- Define conditional compilation symbols -->
+  <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('win'))">
+    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('osx'))">
+    <DefineConstants>$(DefineConstants);OSX</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
+    <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.7" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.7" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.7" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.7" />
+    <!--Condition
+    below is needed to remove Avalonia.Diagnostics package from build output in Release
+    configuration.-->
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.7">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+    <PackageReference Include="Markdig" Version="0.37.0" />
+    <PackageReference Include="Avalonia.HtmlRenderer" Version="11.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="LoadingIndicators.Avalonia" Version="11.0.11.1" />
+    <PackageReference Include="Svg.Model" Version="3.0.4" />
+    <PackageReference Include="Svg.Skia" Version="3.0.4" />
+    <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="11.3.0.2" />
+    <!-- <PackageReference Include="System.Drawing.Common" Version="8.0.0" /> -->
+  </ItemGroup>
+
+  <!-- Windows-specific packages -->
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' OR '$(RuntimeIdentifier)' == 'win-arm64' OR $([MSBuild]::IsOSPlatform('Windows'))">
+    <PackageReference Include="System.Management" Version="9.0.9" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.9" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Baiss.Application\Baiss.Application.csproj" />
+    <ProjectReference Include="..\Baiss.Infrastructure\Baiss.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\FloatingIconWindow.axaml.cs">
+      <DependentUpon>FloatingIconWindow.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <!-- Copy .env file to output directory
+  <ItemGroup>
+    <Content Include=".env">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup> -->
+</Project>
+

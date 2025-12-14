@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Baiss.Application\Baiss.Application.csproj" />
+    <ProjectReference Include="..\Baiss.Domain\Baiss.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.2" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.2" />
+    <PackageReference Include="Dapper" Version="2.1.66" />
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.7" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.119" />
+    <PackageReference Include="pythonnet" Version="3.0.5" />
+    <PackageReference Include="dbup-sqlite" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
+    <PackageReference Include="Quartz" Version="3.15.0" />
+    <PackageReference Include="Quartz.Extensions.Hosting" Version="3.15.0" />
+    <PackageReference Include="Quartz.Serialization.Json" Version="3.15.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.9" />
+    <PackageReference Include="System.Management" Version="9.0.9" />
+    <PackageReference Include="WindowsShortcutFactory" Version="1.2.0" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.31.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.31.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.31.0-alpha" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework> <!-- net9.0 ===> net8.0 -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- Define conditional compilation symbols -->
+  <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('win'))">
+    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('osx'))">
+    <DefineConstants>$(DefineConstants);OSX</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
+    <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Db\Migrations\*.sql" />
+  </ItemGroup>
+
+  <!-- Windows-specific packages -->
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' OR '$(RuntimeIdentifier)' == 'win-arm64' OR $([MSBuild]::IsOSPlatform('Windows'))">
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+  </ItemGroup>
+
+</Project>

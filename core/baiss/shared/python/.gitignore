@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+*.db
+*.sqlite
+venv/
+.env
+
+# Local AI models (too large for git)
+models/local-models/
+models/local-models/*.gguf
+models/local-models/.cache/
+
+llm-evaluation/local_data/
+
+yolov8n.pt
+
+
+baiss.db
+
+baiss.duckdb
+
+tables.csv

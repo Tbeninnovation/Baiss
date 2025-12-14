@@ -1,0 +1,62 @@
+<Styles xmlns="https://github.com/avaloniaui">
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+    
+    <Style Selector="Button">
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+    
+    <Style Selector="TextBox">
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderBrush" Value="#77818b" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+    
+    <Style Selector="ComboBox">
+        <Setter Property="BorderBrush" Value="#77818b" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+    
+    <Style Selector="Window">
+        <Setter Property="Background" Value="#1a1a1a" />
+    </Style>
+    
+    <Style Selector="Button.icon-btn">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="CornerRadius" Value="100" />
+    </Style>
+    <Style Selector="Button.icon-btn:pointerover">
+        <Setter Property="Background" Value="rgba(255,255,255,0.2)" />
+        <Setter Property="BorderBrush" Value="rgba(255,255,255,0.2)" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.icon-btn:pointerover /template/ Border#PART_Root">
+        <Setter Property="CornerRadius" Value="100" />
+    </Style>
+    <Style Selector="Button.icon-btn:pressed /template/ Border#PART_Root">
+        <Setter Property="Background" Value="rgba(255,255,255,0.2)" />
+        <Setter Property="BorderBrush" Value="rgba(255,255,255,0.2)" />
+        <Setter Property="CornerRadius" Value="100" />
+    </Style>
+    <Style Selector="TextBox.chat-input">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.menu-btn">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.menu-btn:pointerover">
+        <Setter Property="Background" Value="rgba(255,255,255,0.4)" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+</Styles>
