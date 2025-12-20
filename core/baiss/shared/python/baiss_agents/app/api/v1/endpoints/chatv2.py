@@ -1,6 +1,7 @@
 import json
 from typing import Optional, List
 import time
+import re
 import baisstools
 baisstools.insert_syspath(__file__, matcher = [r"^baiss_.*$"])
 
@@ -20,7 +21,6 @@ from baiss_agents.app.api.v1.endpoints.files import start_tree_structure_operati
 from baiss_sdk.db import DbProxyClient
 from baiss_sdk import get_baiss_project_path
 from baiss_sdk.files.embeddings import Embeddings
-from baiss_sdk.search.pipeline import SearchPipeline
 import time
 import datetime
 from pathlib import Path
@@ -44,10 +44,121 @@ class SimilaritySearchRequest(BaseModel):
     url_embedding: str
     model_path: Optional[str] = None
 
+class RamInfo(BaseModel):
+    TotalRAM: str      # e.g., "7946 MB" or "36864 MB"
+    AvailableRAM: Optional[str] = None  # e.g., "910 MB" (may not be available on macOS)
+    UsedRAM: Optional[str] = None
+    Platform: Optional[str] = None  # e.g., "macOS", "Windows"
+
+class UserConfig(BaseModel):
+    RamInfo: RamInfo
+    CpuInfo: Optional[dict] = None
+    GpuInfo: Optional[list] = None
+    PythonPath: Optional[str] = None
+    LlamaCppServerPath: Optional[str] = None
+    BaissPythonCorePath: Optional[str] = None
+
+class ModelInfo(BaseModel):
+    model_id: str
+    files: Optional[Dict[str, int]] = {}
+    current_size: Optional[int] = None
+
+class CompatibilityResponse(BaseModel):
+    status: str
+    message: str
+    score: int    # 0 to 100
+
 
 
 def now() -> str:
     return datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
+
+def parse_memory_gb(mem_str: str) -> float:
+    """Parses '1024 MB' or '8 GB' into float GB."""
+    if not mem_str: return 0.0
+    match = re.search(r"(\d+(\.\d+)?)", str(mem_str))
+    if not match: return 0.0
+    val = float(match.group(1))
+    if "MB" in str(mem_str).upper():
+        return val / 1024.0
+    return val
+
+@router.post("/check-compatibility", response_model=CompatibilityResponse)
+async def check_cpu_compatibility(
+    user_config: UserConfig, 
+    model_info: ModelInfo
+):
+    """
+    Check model compatibility with user's computer based on RAM requirements.
+    Evaluates whether the system has sufficient RAM for CPU inference.
+    """
+    try:
+        model_size_bytes = 0
+        if model_info.files:
+            for fname, fsize in model_info.files.items():
+                if fname.endswith(".gguf"):
+                    model_size_bytes = fsize
+                    break
+        
+        if model_size_bytes == 0 and model_info.current_size:
+            model_size_bytes = model_info.current_size
+
+        model_size_gb = model_size_bytes / (1024 ** 3)
+
+        required_for_model_gb = model_size_gb + 0.5
+        
+        min_total_ram_needed_gb = required_for_model_gb + 2.0
+
+        total_ram_gb = parse_memory_gb(user_config.RamInfo.TotalRAM)
+        available_ram_gb = parse_memory_gb(user_config.RamInfo.AvailableRAM) if user_config.RamInfo.AvailableRAM else None
+
+        response = CompatibilityResponse(
+            status="Unknown", message="", score=0
+        )
+
+        if total_ram_gb < min_total_ram_needed_gb:
+            response.status = "Incompatible"
+            response.message = (
+                f"Your system has {total_ram_gb:.1f}GB RAM. "
+                f"This model requires {required_for_model_gb:.1f}GB + 2GB system overhead."
+            )
+            response.score = 0
+            return response
+
+        if available_ram_gb is None:
+            response.status = "Likely Compatible"
+            response.message = (
+                f"Your system has {total_ram_gb:.1f}GB total RAM. "
+                f"This model needs {required_for_model_gb:.1f}GB. "
+                f"Ensure you have sufficient free memory before running."
+            )
+            response.score = 85
+            return response
+         
+        if available_ram_gb >= required_for_model_gb:
+            response.status = "Excellent"
+            response.message = "Your computer is ready. RAM is sufficient."
+            response.score = 100
+            return response
+
+        deficit = required_for_model_gb - available_ram_gb
+        
+        response.status = "Low Free RAM"
+        response.message = (
+            f"Your system is capable, but you are low on memory. "
+            f"Close other apps to free up {deficit:.1f}GB RAM."
+        )
+        response.score = 60
+        
+        return response
+    
+    except Exception as e:
+        logger.error(f"Compatibility check error: {e}")
+        return CompatibilityResponse(
+            status="Error",
+            message=f"Error checking compatibility: {str(e)}",
+            score=0
+        )
 
 @router.post("/similarity_search")
 async def api_v1_llmbox_similarity(request: SimilaritySearchRequest):
@@ -138,28 +249,26 @@ async def api_v1_llmbox_similarity(request: SimilaritySearchRequest):
             # Generate query embedding for hybrid search
             
             query_embedding = await Embeddings(url = url_embedding).embed(query)
-
-            search_pipeline = SearchPipeline(db_client)
             
             # Perform hybrid search
-            results = search_pipeline.search(
+            results = db_client.hybrid_similarity_search(
                 query_text=query,
                 query_embedding=query_embedding,
-                final_top_k=top_k
+                top_k=top_k,
+                k=request.k,
+                score_threshold=score_threshold
             )
-            logger.info(f"Hybrid search returned {results} results.")
-            # exit(0)
             
             # Format results
             formatted_results = [
                 {
-                    "chunk_content": result["chunk_content"],
-                    "path": result["path"] if not result["path"].startswith("file://") else result["path"][7:],
-                    "score": result["score"],
-                    "id": result["id"],
-                    "metadata": result["metadata"],
-                    # "cosine_score": result["cosine_score"],
-                    # "bm25_score": result["bm25_score"],
+                    "chunk_content": result[0],
+                    "path": result[1] if not result[1].startswith("file://") else result[1][7:],
+                    "score": result[2],
+                    "id": result[3],
+                    "metadata": result[4],
+                    "cosine_score": result[5],
+                    "bm25_score": result[6],
                     # "search_type": "hybrid"
                 }
                 for result in results
@@ -371,6 +480,13 @@ async def get_pre_chat(websocket: WebSocket):
             "content": system_prompt_content
         }
         
+        # content = messages[-1]["content"]
+        # if isinstance(content, list):
+        #     user_query = " ".join([item["text"] for item in content if item.get("type") == "text"])
+        # else:
+        #     user_query = content
+
+        # logging.info(f"User query: {user_query}")
         all_messages = [system_prompt_message] + messages
 
         # Prepare the payload for llama server
@@ -457,7 +573,7 @@ async def get_pre_chat(websocket: WebSocket):
                         if tool.get("tool") == "search" and tool.get("query"):
                             search_query = tool["query"]
                             logger.info(f"Performing additional search for query: {search_query}")
-                            search_params = SimilaritySearchRequest(query=search_query, search_type="hybrid", url_embedding=url_embedding, top_k=5)
+                            search_params = SimilaritySearchRequest(query=search_query, search_type="cosine", url_embedding=url_embedding, top_k=5)
                             search_result = await api_v1_llmbox_similarity(search_params)
                             # logging.info(f"Additional similarity search completed with status: {search_result.body}")
                             result_content = json.loads(search_result.body.decode('utf-8'))
