@@ -121,6 +121,15 @@ public class ExternalApiService : IExternalApiService, IDisposable
 					_logger.LogInformation("Received {Count} paths", processedChunks.Paths.Count);
 				}
 
+				// Yield code execution status as special marker
+				if (processedChunks.CodeExecutionStatus.HasValue)
+				{
+					var status = processedChunks.CodeExecutionStatus.Value ? "success" : "error";
+					var error = processedChunks.CodeExecutionError ?? "";
+					yield return $"[CODE_EXEC:{status}:{error}]";
+					_logger.LogInformation("Code execution status: {Status}, Error: {Error}", status, error);
+				}
+
 				// Yield chunks immediately as they arrive
 				foreach (var textChunk in processedChunks.TextChunks)
 				{
@@ -317,6 +326,17 @@ public class ExternalApiService : IExternalApiService, IDisposable
 					}
 				}
 
+				// Check for code_execution_status in response (before returning)
+				if (responseProp.TryGetProperty("code_execution_status", out var codeExecStatus))
+				{
+					result.CodeExecutionStatus = codeExecStatus.GetBoolean();
+					if (responseProp.TryGetProperty("error", out var codeExecError) && 
+					    codeExecError.ValueKind != JsonValueKind.Null)
+					{
+						result.CodeExecutionError = codeExecError.GetString();
+					}
+				}
+
 				return result;
 			}
 
@@ -397,6 +417,10 @@ public class ExternalApiService : IExternalApiService, IDisposable
 		public List<string> TextChunks { get; set; } = new List<string>();
 		public List<Baiss.Application.DTOs.PathScoreDto> Paths { get; set; } = new List<Baiss.Application.DTOs.PathScoreDto>();
 		public bool IsComplete { get; set; }
+		
+		// Code execution status: null = not a code execution message, true = success, false = error
+		public bool? CodeExecutionStatus { get; set; }
+		public string? CodeExecutionError { get; set; }
 	}
 
 	#endregion

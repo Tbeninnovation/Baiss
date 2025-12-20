@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+from typing import List, Dict, Any
 
 class PythonExtractor:
 	"""
@@ -10,17 +11,22 @@ class PythonExtractor:
 	def __init__(self, text: str):
 		self._text      = text.strip()
 		self._functions = PythonExtractor.extract_functions(self._text)
-	
+		self._sections  = PythonExtractor.extract_sections(self._text)
+
 	@property
 	def functions(self):
 		return self._functions
+
+	@property
+	def sections(self):
+		return self._sections
 
 	@staticmethod
 	def is_function_start(pos: int, text: str, length: int):
 		if (pos > 0) and not (text[pos - 1].isspace()):
 			return False
-		if text[pos:pos + 4] == "async":
-			pos += 4
+		if text[pos:pos + 5] == "async":
+			pos += 5
 		elif text[pos:pos + 3] == "def":
 			pos += 3
 		else:
@@ -139,6 +145,27 @@ class PythonExtractor:
 		return function
 
 	@staticmethod
+	def extract_sections(text: str):
+		"""
+		Extracts Python code sections from the provided text.
+		Only sections enclosed in triple backticks (```) and labeled as Python are extracted.
+		"""
+		sections : List[str] = []
+		start_pos: int	     = text.find("```")
+		while start_pos >= 0:
+			end_pos   = text.find("```", start_pos + 3)
+			if end_pos < 0:
+				break
+			section   = text[start_pos + 3:end_pos].strip()
+			start_pos = end_pos + 3
+			first_word = section.split()[0].strip().lower()
+			if not (first_word in ["python", "py"]):
+				continue
+			section = section[len(first_word):].strip()
+			sections.append(section)
+		return sections
+
+	@staticmethod
 	def extract_functions(text: str):
 		"""
 		Extracts functions from the provided Python code string.
@@ -154,23 +181,3 @@ class PythonExtractor:
 				continue
 			pos += 1
 		return functions
-
-def dataexpert_exec(**kwargs):
-	sources = kwargs["sources"]
-	pycode  = kwargs["code"]
-
-	for function in PythonExtractor(pycode).functions:
-		if not ("dataframes" in function["definition"]):
-			continue
-		print ("- " * 80)
-		print (function["body"])
-
-	response = {
-		"success"       : False,
-		"stdout"        : "",
-		"stderr"        : None,
-		"error"         : None,
-		"execution_time": 0
-	}
-
-	return response

@@ -15,6 +15,11 @@ namespace Baiss.UI.Models
             @"<\s*search_tool\s*>(?<tagged>.*?)<\s*/\s*search_tool\s*>|(?<json>\{\s*""tool""\s*:\s*""[^""]+""[^}]*\})",
             RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
 
+        // Regex to detect Python code blocks: ```python ... ```
+        private static readonly Regex PythonCodeBlockRegex = new(
+            @"```python\s*(?<code>[\s\S]*?)```",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         private string _content = string.Empty;
         public required string Content
         {
@@ -141,6 +146,24 @@ namespace Baiss.UI.Models
             }
         }
 
+        // Code execution results - persisted across MessageSegments regeneration
+        private List<CodeExecutionResult> _codeExecutionResults = new();
+        public List<CodeExecutionResult> CodeExecutionResults => _codeExecutionResults;
+
+        /// <summary>
+        /// Updates the execution status for a code block at the given index.
+        /// </summary>
+        public void UpdateCodeExecutionResult(int index, bool isSuccess, string? error = null)
+        {
+            while (_codeExecutionResults.Count <= index)
+            {
+                _codeExecutionResults.Add(new CodeExecutionResult());
+            }
+            _codeExecutionResults[index].IsSuccess = isSuccess;
+            _codeExecutionResults[index].Error = error;
+            OnPropertyChanged(nameof(MessageSegments)); // Trigger UI refresh
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         protected virtual void OnPropertyChanged(string propertyName)
@@ -172,29 +195,45 @@ namespace Baiss.UI.Models
             Content += text;
         }
 
-        private static IReadOnlyList<MessageSegment> ParseSegments(string content, bool isMine)
+        private IReadOnlyList<MessageSegment> ParseSegments(string content, bool isMine)
         {
             if (string.IsNullOrEmpty(content))
             {
                 return Array.Empty<MessageSegment>();
             }
 
-            var matches = ThinkingBlockRegex.Matches(content);
-            if (matches.Count == 0)
+            // Combine all matches from both regexes with their types
+            var allMatches = new List<(Match Match, string Type)>();
+            
+            foreach (Match match in ThinkingBlockRegex.Matches(content))
+            {
+                allMatches.Add((match, "thinking"));
+            }
+            
+            foreach (Match match in PythonCodeBlockRegex.Matches(content))
+            {
+                allMatches.Add((match, "code"));
+            }
+
+            if (allMatches.Count == 0)
             {
                 return new List<MessageSegment> { new TextMessageSegment(content) { IsMine = isMine } };
             }
 
+            // Sort by position in content
+            allMatches.Sort((a, b) => a.Match.Index.CompareTo(b.Match.Index));
+
             var segments = new List<MessageSegment>();
             var currentIndex = 0;
 
-            foreach (Match match in matches)
+            foreach (var (match, type) in allMatches)
             {
                 if (!match.Success)
                 {
                     continue;
                 }
 
+                // Add any text before this match
                 if (match.Index > currentIndex)
                 {
                     var textSegment = content.Substring(currentIndex, match.Index - currentIndex);
@@ -204,18 +243,31 @@ namespace Baiss.UI.Models
                     }
                 }
 
-                var payload = match.Groups["tagged"].Success
-                    ? match.Groups["tagged"].Value
-                    : match.Groups["json"].Value;
-
-                if (!string.IsNullOrWhiteSpace(payload))
+                if (type == "thinking")
                 {
-                    segments.Add(new ThinkingMessageSegment(payload.Trim()) { IsMine = isMine });
+                    var payload = match.Groups["tagged"].Success
+                        ? match.Groups["tagged"].Value
+                        : match.Groups["json"].Value;
+
+                    if (!string.IsNullOrWhiteSpace(payload))
+                    {
+                        segments.Add(new ThinkingMessageSegment(payload.Trim()) { IsMine = isMine });
+                    }
+                }
+                else if (type == "code")
+                {
+                    var code = match.Groups["code"].Value;
+                    if (!string.IsNullOrWhiteSpace(code))
+                    {
+                        var codeBlockIndex = segments.OfType<CodeExecutionMessageSegment>().Count();
+                        segments.Add(new CodeExecutionMessageSegment(code.Trim(), codeBlockIndex, this) { IsMine = isMine });
+                    }
                 }
 
                 currentIndex = match.Index + match.Length;
             }
 
+            // Add any remaining text after the last match
             if (currentIndex < content.Length)
             {
                 var textSegment = content.Substring(currentIndex);
@@ -274,6 +326,83 @@ namespace Baiss.UI.Models
         }
     }
 
+    /// <summary>
+    /// Represents a code execution segment in a message (Python code block).
+    /// </summary>
+    public class CodeExecutionMessageSegment : MessageSegment
+    {
+        public CodeExecutionMessageSegment(string code, int codeBlockIndex, ChatMessage? parentMessage = null)
+        {
+            Code = code;
+            CodeBlockIndex = codeBlockIndex;
+            ParentMessage = parentMessage;
+            _isExpanded = true; // Default to expanded
+        }
+
+        /// <summary>
+        /// The Python code to be executed.
+        /// </summary>
+        public string Code { get; }
+
+        /// <summary>
+        /// Index of this code block in the message (for looking up execution result).
+        /// </summary>
+        public int CodeBlockIndex { get; }
+
+        /// <summary>
+        /// Reference to parent message for looking up execution results.
+        /// </summary>
+        private ChatMessage? ParentMessage { get; }
+
+        /// <summary>
+        /// Gets the execution result from the parent message.
+        /// </summary>
+        private CodeExecutionResult? ExecutionResult =>
+            ParentMessage?.CodeExecutionResults.Count > CodeBlockIndex
+                ? ParentMessage.CodeExecutionResults[CodeBlockIndex]
+                : null;
+
+        /// <summary>
+        /// Execution status: null = pending/running, true = success, false = error.
+        /// </summary>
+        public bool? IsSuccess => ExecutionResult?.IsSuccess;
+
+        /// <summary>
+        /// Output from the code execution (stdout or error message).
+        /// </summary>
+        public string? Output => ExecutionResult?.Error;
+
+        public bool HasOutput => !string.IsNullOrEmpty(Output);
+
+        public string StatusText => IsSuccess switch
+        {
+            null => "Running...",
+            true => "Success",
+            false => "Error"
+        };
+
+        public string StatusColor => IsSuccess switch
+        {
+            null => "#F59E0B", // amber/yellow for running
+            true => "#10B981", // green for success
+            false => "#EF4444"  // red for error
+        };
+
+        private bool _isExpanded;
+        public bool IsExpanded
+        {
+            get => _isExpanded;
+            set
+            {
+                if (_isExpanded != value)
+                {
+                    _isExpanded = value;
+                    OnPropertyChanged(nameof(IsExpanded));
+                }
+            }
+        }
+    }
+
     // Extension class to add helper methods for SourceItem
     public static class SourceItemExtensions
     {
@@ -305,5 +434,14 @@ namespace Baiss.UI.Models
         }
 
         public string FormattedScore => string.Format(CultureInfo.InvariantCulture, "score: {0:F2}%", Score * 100);
+    }
+
+    /// <summary>
+    /// Stores the result of a code execution.
+    /// </summary>
+    public class CodeExecutionResult
+    {
+        public bool? IsSuccess { get; set; }
+        public string? Error { get; set; }
     }
 }

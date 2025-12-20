@@ -15,6 +15,7 @@ import json
 import httpx
 from pydantic import BaseModel
 from baiss_sdk.parsers.json_extractor import JsonExtractor
+from baiss_sdk.parsers.python_extractor import PythonExtractor
 from starlette.websockets import WebSocket, WebSocketDisconnect
 from baiss_agents.app.api.v1.endpoints.files import start_tree_structure_operation_impl
 #from baiss_agents.app.core.config import ai_client
@@ -24,7 +25,7 @@ from baiss_sdk.files.embeddings import Embeddings
 import time
 import datetime
 from pathlib import Path
-
+from baiss_sdk.sandbox.python_sandbox import PythonSandbox
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
@@ -460,7 +461,7 @@ async def get_pre_chat(websocket: WebSocket):
             db_client.disconnect()
 
         #TODO: system prompt should be cached and launched with the API 
-        system_prompt_path_str = get_baiss_project_path("core","baiss","shared","python","baiss_agents","app","system_prompt","brain","brain.md")
+        system_prompt_path_str = get_baiss_project_path("core","baiss","shared","python","baiss_agents","app","system_prompt","brain","brainv2.md")
         
         system_prompt_path = Path(system_prompt_path_str)
 
@@ -491,7 +492,6 @@ async def get_pre_chat(websocket: WebSocket):
 
         # Prepare the payload for llama server
         payload = {
-            "messages": all_messages,
             "stream": True,
             "reasoning_format": "auto",
             "temperature": 0.3,
@@ -521,8 +521,12 @@ async def get_pre_chat(websocket: WebSocket):
         MAX_ATTEMPTS = 3
         i = 0
         results = []
-        while i < MAX_ATTEMPTS:
+        should_continue = True  # Flag to control loop continuation
+        
+        while i < MAX_ATTEMPTS and should_continue:
+            payload["messages"] = all_messages
             content_buffer = ""
+            should_continue = False  # Reset - only continue if we have more work
 
             # Stream the response from llama server to websocket
             async with httpx.AsyncClient(timeout=300.0) as client:
@@ -565,6 +569,72 @@ async def get_pre_chat(websocket: WebSocket):
                                 continue
             # to check wash had l3iba khas tkon flkhr ola ndiroha lwst
             extract_tools = JsonExtractor.extract_objects(content_buffer)
+            extract_python = PythonExtractor(content_buffer).functions
+
+            if extract_python:
+                # logging.info(f"Extracted Python functions/classes/methods: {extract_python}")
+
+                for attempts in range(3):
+                    try:
+                        sandbox = PythonSandbox()
+                        sandbox.add_tool_reference(
+                            name="searchlocaldocuments",
+                            module_path="baiss_sdk.tools",
+                            class_name="allTools",
+                            method_name="searchlocaldocuments",
+                            init_kwargs={"url_embedding": url_embedding}
+                        )
+                        code_to_execute = str(extract_python[0]["body"]).rstrip() + "\n\nasyncio.run(main())\n"
+                        logger.info(f"extracted code {code_to_execute}")
+                        exec_result = sandbox.execute(code_to_execute, timeout=30)
+                        # logging.info(f"Sandbox execution result: {exec_result}")
+                        if exec_result.get("success"):
+                            exec_data = exec_result.get("stdout")
+                            if exec_data:
+                                all_messages.append({
+                                    "role": "user",
+                                    "content": f"The code executed successfully with result: {str(exec_data)}"
+                                })
+                            else: 
+                                all_messages.append({
+                                    "role": "user",
+                                    "content": f"The code executed successfully with no result."
+                                })
+
+                            await websocket.send_json({
+                                    "success" : True,
+                                    "error"   : None,
+                                    "response": {
+                                        "code_execution_status": True,
+                                        "error": None
+                                    }
+                                })
+                            should_continue = True
+                            break
+                        else:
+                            exec_error = exec_result.get("error")
+                            # logging.error(f"Sandbox execution error: {exec_error}")
+                            all_messages.append({
+                                "role": "user",
+                                "content": f"The code execution failed, here is the error: {exec_error}, fix it and try again.\n"
+                            })
+
+
+                            await websocket.send_json({
+                                    "success" : True,
+                                    "error"   : None,
+                                    "response": {
+                                        "code_execution_status": False,
+                                        "error": exec_error
+                                    }
+                                })
+                            should_continue = True
+                            time.sleep(1)
+                            break
+                    except Exception as e:
+                        logging.error(f"Sandbox execution error on attempt {attempts + 1}: {e}", exc_info=True)
+                        time.sleep(1)
+
 
             if len(extract_tools) > 0:
                 try:
@@ -586,27 +656,26 @@ async def get_pre_chat(websocket: WebSocket):
                                     "role": "user",
                                     "content": f"<search_results>{str(results)}</search_results>"
                                 })
+                                should_continue = True
                             else:
                                 all_messages.append({
                                     "role": "user",
                                     "content": "<search_results>[]</search_results>"
                                 })
+                                should_continue = True
                         else:
                             logging.info("No search tool found in extracted tools.")
-                            i = MAX_ATTEMPTS
-                            break  # Exit the retry loop if no search tool found
-                except:
+                            # No valid tool, don't continue
+                except Exception as tool_error:
+                    logging.error(f"Error processing tools: {tool_error}")
                     all_messages.append({
                         "role": "user",
                         "content": "<search_results>[]</search_results>"
                     })
-                    continue
-            else:
-                logging.info("No tools extracted from the response.")
-                i = MAX_ATTEMPTS
-                break  # Exit the retry loop if no tools to process
-                    
-        i += 1
+                    should_continue = True
+            # else: no tools/code found, should_continue stays False, loop ends naturally
+            
+            i += 1
         retrieval_end = time.time()
         retrieval_time = retrieval_end - retrieval_start
         if len(results) > 0:

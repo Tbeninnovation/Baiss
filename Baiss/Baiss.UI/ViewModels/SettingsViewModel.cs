@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Diagnostics;
 using System.Net.Http;
@@ -275,6 +276,12 @@ public class GgufVariant : ViewModelBase
     }
 }
 
+public class ScheduleOption
+{
+    public string DisplayName { get; set; } = string.Empty;
+    public string CronExpression { get; set; } = string.Empty;
+}
+
 public partial class SettingsViewModel : ViewModelBase, IDisposable
 {
     private const long ModelDownloadSizeBytes = 3L * 1024 * 1024 * 1024; // 3 GB per model download
@@ -287,9 +294,67 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     private bool _isGeneralSelected = true;
     private bool _isAIAccessSelected = false;
     private bool _isAIModelsSelected = false;
-    private bool _isConnectedAppsSelected = false;
-    private bool _isScheduleSelected = false;
     private bool _isSupportSelected = false;
+
+    // Schedule Settings
+    private string _treeStructureSchedule = "0 0 0 * * ?";
+    private bool _treeStructureScheduleEnabled = false;
+    private bool _hasScheduleChanges = false;
+    private bool _showScheduleSuccess = false;
+    private ScheduleOption? _selectedScheduleOption;
+
+    public ObservableCollection<ScheduleOption> ScheduleOptions { get; } = new ObservableCollection<ScheduleOption>();
+
+    public ScheduleOption? SelectedScheduleOption
+    {
+        get => _selectedScheduleOption;
+        set
+        {
+            if (SetProperty(ref _selectedScheduleOption, value) && value != null)
+            {
+                TreeStructureSchedule = value.CronExpression;
+            }
+        }
+    }
+
+    public string TreeStructureSchedule
+    {
+        get => _treeStructureSchedule;
+        set
+        {
+            if (SetProperty(ref _treeStructureSchedule, value))
+            {
+                HasScheduleChanges = true;
+            }
+        }
+    }
+
+    public bool TreeStructureScheduleEnabled
+    {
+        get => _treeStructureScheduleEnabled;
+        set
+        {
+            if (SetProperty(ref _treeStructureScheduleEnabled, value))
+            {
+                HasScheduleChanges = true;
+            }
+        }
+    }
+
+    public bool HasScheduleChanges
+    {
+        get => _hasScheduleChanges;
+        set => SetProperty(ref _hasScheduleChanges, value);
+    }
+
+    public bool ShowScheduleSuccess
+    {
+        get => _showScheduleSuccess;
+        set => SetProperty(ref _showScheduleSuccess, value);
+    }
+
+    public ICommand ApplyScheduleCommand { get; }
+    public ICommand CancelScheduleCommand { get; }
 
     private string _checkNowButtonText = "Check now";
     private string _currentVersionText = "Version: --";
@@ -1028,8 +1093,20 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         get => _selectedLocalEmbeddingModel;
         set
         {
+            var oldModel = _selectedLocalEmbeddingModel;
             if (SetProperty(ref _selectedLocalEmbeddingModel, value))
             {
+                if (oldModel != null) oldModel.PropertyChanged -= OnSelectedEmbeddingModelPropertyChanged;
+                if (value != null) value.PropertyChanged += OnSelectedEmbeddingModelPropertyChanged;
+
+                OnPropertyChanged(nameof(CanEnableSchedule));
+                OnPropertyChanged(nameof(ScheduleDisabledReason));
+
+                if (!CanEnableSchedule && TreeStructureScheduleEnabled)
+                {
+                    TreeStructureScheduleEnabled = false;
+                }
+
                 // Auto-save when selection changes (if not suppressed)
                 if (!_suppressAutoLoad)
                 {
@@ -1038,6 +1115,26 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
             }
         }
     }
+
+    private void OnSelectedEmbeddingModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AIModel.IsDownloaded))
+        {
+            OnPropertyChanged(nameof(CanEnableSchedule));
+            OnPropertyChanged(nameof(ScheduleDisabledReason));
+
+            if (!CanEnableSchedule && TreeStructureScheduleEnabled)
+            {
+                TreeStructureScheduleEnabled = false;
+            }
+        }
+    }
+
+    public bool CanEnableSchedule => SelectedLocalEmbeddingModel != null && SelectedLocalEmbeddingModel.IsDownloaded;
+
+    public string ScheduleDisabledReason => CanEnableSchedule
+        ? "Enable scheduled updates"
+        : "You must select and download an embedding model first.";
 
     public AIModel? SelectedHostedChatModel
     {
@@ -1322,18 +1419,6 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     {
         get => _isAIModelsSelected;
         set => SetProperty(ref _isAIModelsSelected, value);
-    }
-
-    public bool IsConnectedAppsSelected
-    {
-        get => _isConnectedAppsSelected;
-        set => SetProperty(ref _isConnectedAppsSelected, value);
-    }
-
-    public bool IsScheduleSelected
-    {
-        get => _isScheduleSelected;
-        set => SetProperty(ref _isScheduleSelected, value);
     }
 
     public bool IsSupportSelected
@@ -2552,6 +2637,64 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         {
             _ = CheckTreeStructureThreadAsync();
         }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+
+        ApplyScheduleCommand = new AsyncRelayCommand(async _ => await ApplyScheduleChangesAsync());
+        CancelScheduleCommand = new RelayCommand(CancelScheduleChanges);
+
+        InitializeScheduleOptions();
+    }
+
+    private void InitializeScheduleOptions()
+    {
+        ScheduleOptions.Clear();
+        ScheduleOptions.Add(new ScheduleOption { DisplayName = "Every 15 Minutes", CronExpression = "0 0/15 * * * ?" });
+        ScheduleOptions.Add(new ScheduleOption { DisplayName = "Every Hour", CronExpression = "0 0 * * * ?" });
+        ScheduleOptions.Add(new ScheduleOption { DisplayName = "Every 6 Hours", CronExpression = "0 0 0/6 * * ?" });
+        ScheduleOptions.Add(new ScheduleOption { DisplayName = "Every Day at Midnight", CronExpression = "0 0 0 * * ?" });
+        ScheduleOptions.Add(new ScheduleOption { DisplayName = "Every Week (Sunday)", CronExpression = "0 0 0 ? * SUN" });
+        ScheduleOptions.Add(new ScheduleOption { DisplayName = "Every 10 Seconds (Testing)", CronExpression = "0/10 * * * * ?" });
+    }
+
+    private async Task ApplyScheduleChangesAsync()
+    {
+        try
+        {
+            IsSaving = true;
+            var dto = new UpdateTreeStructureScheduleDto
+            {
+                Schedule = TreeStructureSchedule,
+                Enabled = TreeStructureScheduleEnabled
+            };
+
+            var result = await _settingsUseCase.UpdateTreeStructureScheduleAsync(dto);
+            if (result != null)
+            {
+                HasScheduleChanges = false;
+                ShowScheduleSuccess = true;
+
+                // Hide success message after 3 seconds
+                _ = Task.Delay(3000).ContinueWith(_ =>
+                {
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() => ShowScheduleSuccess = false);
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update schedule settings");
+            Views.MainWindow.ToastServiceInstance.ShowError("Failed to save schedule settings", 4000);
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+
+    private void CancelScheduleChanges()
+    {
+        // Reload settings to revert changes
+        _ = LoadSettingsAsync();
+        HasScheduleChanges = false;
     }
 
     // private void TryResolveDatabricksChatSelectionById()
@@ -2921,7 +3064,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
                             foreach (var variant in localModel.Variants)
                             {
                                 bool isMatch = string.Equals(variant.Id, downloadedFilename, StringComparison.OrdinalIgnoreCase);
-                                
+
                                 // Only update if changed to avoid unnecessary property change notifications
                                 if (variant.IsDownloaded != isMatch)
                                 {
@@ -2984,25 +3127,6 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
             Icon = "/Assets/settings-support.svg",
             IsSelected = false
         });
-
-        // TODO: Temporarily commented out - will be implemented later
-        /*
-        SettingsNavigationItems.Add(new SettingsNavigationItem
-        {
-            Id = "connected-apps",
-            Title = "Connected Apps",
-            Icon = "/Assets/connect.svg",
-            IsSelected = false
-        });
-
-        SettingsNavigationItems.Add(new SettingsNavigationItem
-        {
-            Id = "schedule",
-            Title = "Schedule",
-            Icon = "/Assets/calendar.svg",
-            IsSelected = false
-        });
-        */
     }
 
     private void UpdateTabVisibility()
@@ -3012,8 +3136,6 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         IsGeneralSelected = false;
         IsAIAccessSelected = false;
         IsAIModelsSelected = false;
-        IsConnectedAppsSelected = false;
-        IsScheduleSelected = false;
         IsSupportSelected = false;
 
         switch (SelectedSettingsItem.Id)
@@ -3701,6 +3823,15 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
 
                 // Load AI model settings
                 LoadAIModelSettingsFromDto(settings);
+
+                // Load schedule settings
+                TreeStructureSchedule = settings.TreeStructureSchedule ?? "0 0 0 * * ?";
+                TreeStructureScheduleEnabled = settings.TreeStructureScheduleEnabled;
+
+                // Match with options
+                SelectedScheduleOption = ScheduleOptions.FirstOrDefault(o => o.CronExpression == TreeStructureSchedule);
+
+                HasScheduleChanges = false;
 
                 _logger.LogDebug("Settings loaded successfully");
             }
@@ -5901,6 +6032,11 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
 
     public void Dispose()
     {
+        if (SelectedLocalEmbeddingModel != null)
+        {
+            SelectedLocalEmbeddingModel.PropertyChanged -= OnSelectedEmbeddingModelPropertyChanged;
+        }
+
         _statusTimer?.Dispose();
         _statusTimer = null;
         HideFileTypesDeletionWarning();

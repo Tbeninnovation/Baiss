@@ -39,6 +39,7 @@
         <vm:ZeroToBoolConverter x:Key="NonZeroToBoolConverter" Invert="True" />
         <vm:ExpandedToArrowConverter x:Key="ExpandedToArrowConverter" />
         <vm:FileNameConverter x:Key="FileNameConverter" />
+        <vm:CopyButtonAlignmentConverter x:Key="CopyButtonAlignmentConverter" />
         <conv:ScopeEqualsConverter x:Key="ScopeEqualsConverter" />
         <DataTemplate x:Key="CompactChatModelTemplate" x:DataType="vm:AIModel">
             <TextBlock
@@ -778,6 +779,101 @@
                                                                         </StackPanel>
                                                                     </Border>
                                                                 </DataTemplate>
+                                                                
+                                                                <!-- Code Execution Segment Template -->
+                                                                <DataTemplate DataType="models:CodeExecutionMessageSegment">
+                                                                    <Border
+                                                                        Margin="0,2,0,0"
+                                                                        Background="rgba(255,255,255,0.1)"
+                                                                        BorderBrush="rgba(128,128,128,0.3)"
+                                                                        BorderThickness="1"
+                                                                        CornerRadius="8"
+                                                                        Padding="10">
+                                                                        <StackPanel>
+                                                                            <ToggleButton
+                                                                                Classes="thinking-toggle"
+                                                                                Background="Transparent"
+                                                                                BorderBrush="Transparent"
+                                                                                BorderThickness="0"
+                                                                                Focusable="False"
+                                                                                HorizontalAlignment="Stretch"
+                                                                                IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+                                                                                Padding="0">
+                                                                                <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                                                                                    <svg:Svg
+                                                                                        Grid.Column="0"
+                                                                                        Width="16"
+                                                                                        Height="16"
+                                                                                        Margin="0,0,8,0"
+                                                                                        Path="{Binding IsExpanded, Converter={StaticResource ExpandedToArrowConverter}}" />
+                                                                                    <TextBlock
+                                                                                        Grid.Column="1"
+                                                                                        Text="Running code"
+                                                                                        VerticalAlignment="Center"
+                                                                                        Foreground="#E5EDFF"
+                                                                                        FontWeight="SemiBold"
+                                                                                        TextWrapping="Wrap" />
+                                                                                    <Border
+                                                                                        Grid.Column="2"
+                                                                                        Background="{Binding StatusColor}"
+                                                                                        CornerRadius="4"
+                                                                                        Padding="6,2">
+                                                                                        <TextBlock
+                                                                                            Text="{Binding StatusText}"
+                                                                                            Foreground="White"
+                                                                                            FontSize="11"
+                                                                                            FontWeight="SemiBold" />
+                                                                                    </Border>
+                                                                                </Grid>
+                                                                            </ToggleButton>
+                                                                            
+                                                                            <!-- Code Display (Expanded) -->
+                                                                            <Border
+                                                                                Margin="0,8,0,0"
+                                                                                Padding="10"
+                                                                                Background="rgba(128,128,128,0.2)"
+                                                                                CornerRadius="6"
+                                                                                IsVisible="{Binding IsExpanded}">
+                                                                                <StackPanel Spacing="8">
+                                                                                    <TextBlock
+                                                                                        Text="Code:"
+                                                                                        Foreground="#94A3B8"
+                                                                                        FontSize="11"
+                                                                                        FontWeight="SemiBold" />
+                                                                                    <SelectableTextBlock
+                                                                                        Text="{Binding Code}"
+                                                                                        TextWrapping="Wrap"
+                                                                                        FontFamily="Consolas, 'Cascadia Code', 'Courier New', monospace"
+                                                                                        FontSize="12"
+                                                                                        Foreground="#CBD5F5" />
+                                                                                    
+                                                                                    <!-- Output (if available) -->
+                                                                                    <StackPanel
+                                                                                        IsVisible="{Binding HasOutput}"
+                                                                                        Spacing="4">
+                                                                                        <TextBlock
+                                                                                            Text="Output:"
+                                                                                            Foreground="#94A3B8"
+                                                                                            FontSize="11"
+                                                                                            FontWeight="SemiBold"
+                                                                                            Margin="0,4,0,0" />
+                                                                                        <Border
+                                                                                            Background="rgba(128,128,128,0.15)"
+                                                                                            CornerRadius="4"
+                                                                                            Padding="8">
+                                                                                            <SelectableTextBlock
+                                                                                                Text="{Binding Output}"
+                                                                                                TextWrapping="Wrap"
+                                                                                                FontFamily="Consolas, 'Cascadia Code', 'Courier New', monospace"
+                                                                                                FontSize="12"
+                                                                                                Foreground="{Binding StatusColor}" />
+                                                                                        </Border>
+                                                                                    </StackPanel>
+                                                                                </StackPanel>
+                                                                            </Border>
+                                                                        </StackPanel>
+                                                                    </Border>
+                                                                </DataTemplate>
                                                             </ItemsControl.DataTemplates>
                                                         </ItemsControl>
                                                         <StackPanel Orientation="Horizontal"
@@ -925,6 +1021,41 @@
                                                         </Border>
                                                     </StackPanel>
                                                 </Border>
+                                                
+                                                <!-- Copy Button (below message) -->
+                                                <Button
+                                                    Height="24"
+                                                    Margin="20,0,10,0"
+                                                    Padding="4,2"
+                                                    HorizontalAlignment="{Binding IsMine, Converter={StaticResource CopyButtonAlignmentConverter}}"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Opacity="0.4"
+                                                    Cursor="Hand"
+                                                    Command="{Binding DataContext.CopyMessageCommand, ElementName=MainWin}"
+                                                    CommandParameter="{Binding}"
+                                                    ToolTip.Tip="Copy message">
+                                                    <Button.Styles>
+                                                        <Style Selector="Button:pointerover">
+                                                            <Setter Property="Opacity" Value="1" />
+                                                        </Style>
+                                                        <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                            <Setter Property="Background" Value="Transparent" />
+                                                        </Style>
+                                                    </Button.Styles>
+                                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                                        <Image
+                                                            Width="14"
+                                                            Height="14"
+                                                            VerticalAlignment="Center"
+                                                            Source="{SvgImage /Assets/copy.svg}" />
+                                                        <TextBlock
+                                                            Text="Copy"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="12"
+                                                            Foreground="White" />
+                                                    </StackPanel>
+                                                </Button>
 
                                                 <!-- Sources Section -->
                                                 <Border
