@@ -701,7 +701,7 @@
                                                         <Style Selector="Button:pressed /template/ ContentPresenter">
                                                             <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
                                                         </Style>
-                                                        
+
                                                         <!-- Cancel style (blue tone for cancel state) -->
                                                         <Style Selector="Button.cancel">
                                                             <Setter Property="Background" Value="rgba(37, 99, 235, 1)" />
@@ -820,7 +820,7 @@
 
                                 <!-- File access: Allowed File Types Section -->
                                 <StackPanel Spacing="15">
-                                    <Grid ColumnDefinitions="*,Auto,Auto"> 
+                                    <Grid ColumnDefinitions="*,Auto,Auto">
                                         <StackPanel Grid.Column="0" Spacing="10">
                                             <StackPanel Orientation="Horizontal" Spacing="10">
                                                 <TextBlock Text="Allowed file types" FontSize="13.4" FontWeight="SemiBold" />
@@ -884,9 +884,76 @@
                                         <CheckBox IsChecked="{Binding AllowXlsFiles}" Content=".xlsx" Margin="0,0,20,10" />
                                     </WrapPanel>
                                 </StackPanel>
+
+                                <!-- Tree Structure Schedule Section -->
+                                <StackPanel Spacing="15">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="Tree Structure Update Schedule" FontSize="13.4" FontWeight="SemiBold" />
+                                        <TextBlock Text="Configure when the tree structure update job should run automatically." FontSize="13.4" Foreground="#A5CFE5" />
+                                    </StackPanel>
+
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="Enable scheduled updates" VerticalAlignment="Center" />
+                                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding TreeStructureScheduleEnabled}" IsEnabled="{Binding CanEnableSchedule}" ToolTip.Tip="{Binding ScheduleDisabledReason}" Margin="10,0">
+                                            <ToggleSwitch.Resources>
+                                                <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#00CC99" />
+                                                <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#00CC99" />
+                                                <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#00CC99" />
+                                                <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#00CC99" />
+                                                <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#00CC99" />
+                                                <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#00CC99" />
+                                            </ToggleSwitch.Resources>
+                                        </ToggleSwitch>
+                                    </Grid>
+
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="Update Frequency" FontSize="13.4" FontWeight="SemiBold" />
+                                        <ComboBox ItemsSource="{Binding ScheduleOptions}"
+                                                  SelectedItem="{Binding SelectedScheduleOption}"
+                                                  HorizontalAlignment="Stretch">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding DisplayName}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <!-- <TextBlock Text="{Binding TreeStructureSchedule, StringFormat='Cron: {0}'}" FontSize="12" Foreground="#A5CFE5" /> -->
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Action Buttons -->
+                                <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" IsVisible="{Binding HasScheduleChanges}">
+                                    <TextBlock Text="Changes saved!"
+                                            Foreground="#00CC99"
+                                            VerticalAlignment="Center"
+                                            Margin="0,0,10,0"
+                                            IsVisible="{Binding ShowScheduleSuccess}" />
+
+                                    <Button Content="Cancel"
+                                            Command="{Binding CancelScheduleCommand}"
+                                            Background="Transparent"
+                                            BorderBrush="rgba(255,255,255,0.1)"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Padding="16,8" />
+
+                                    <Button Content="Apply Changes"
+                                            Command="{Binding ApplyScheduleCommand}"
+                                            Background="#3B82F6"
+                                            CornerRadius="6"
+                                            Padding="16,8"
+                                            IsEnabled="{Binding !IsSaving}">
+                                        <Button.Resources>
+                                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#2563EB" />
+                                            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#1D4ED8" />
+                                        </Button.Resources>
+                                    </Button>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
                     </StackPanel>
+
+
 
                     <!-- Support Settings -->
                     <StackPanel IsVisible="{Binding IsSupportSelected}" Spacing="10">

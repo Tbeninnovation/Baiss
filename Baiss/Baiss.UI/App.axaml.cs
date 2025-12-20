@@ -92,7 +92,7 @@ namespace Baiss.UI
                 }
 
                 // Start the job scheduler
-                /*_ = Task.Run(async () =>
+                _ = Task.Run(async () =>
                 {
                     try
                     {
@@ -101,8 +101,8 @@ namespace Baiss.UI
                         {
                             await _jobScheduler.StartAsync();
 
-                            // Schedule a sample job to demonstrate functionality
-                            await ScheduleSampleJobs();
+                            // Schedule tree structure update job
+                            await ScheduleTreeStructureUpdateJob();
                         }
                     }
                     catch (Exception ex)
@@ -113,7 +113,7 @@ namespace Baiss.UI
                 });
 
                 // Start the AI Providers test service
-                _ = Task.Run(async () =>
+                /*_ = Task.Run(async () =>
                 {
                     try
                     {
@@ -266,6 +266,69 @@ namespace Baiss.UI
             {
                 var logger = ServiceProvider?.GetService<ILogger<App>>();
                 logger?.LogError(ex, "Failed to schedule sample jobs");
+            }
+        }
+
+        private async Task ScheduleTreeStructureUpdateJob()
+        {
+            if (_jobScheduler == null) return;
+
+            try
+            {
+                using var scope = ServiceProvider?.CreateScope();
+                var settingsRepository = scope?.ServiceProvider.GetService<ISettingsRepository>();
+                var modelRepository = scope?.ServiceProvider.GetService<IModelRepository>();
+
+                if (settingsRepository == null) return;
+
+                var settings = await settingsRepository.GetAsync();
+                if (settings != null && settings.TreeStructureScheduleEnabled && !string.IsNullOrEmpty(settings.TreeStructureSchedule))
+                {
+                    bool canSchedule = true;
+
+                    // Validate embedding model
+                    if (string.IsNullOrEmpty(settings.AIEmbeddingModelId))
+                    {
+                        canSchedule = false;
+                        var logger = ServiceProvider?.GetService<ILogger<App>>();
+                        logger?.LogWarning("Skipping tree structure schedule: No embedding model selected.");
+                    }
+                    else if (modelRepository != null)
+                    {
+                        var embeddingModel = await modelRepository.GetModelByIdAsync(settings.AIEmbeddingModelId);
+                        if (embeddingModel == null)
+                        {
+                            canSchedule = false;
+                            var logger = ServiceProvider?.GetService<ILogger<App>>();
+                            logger?.LogWarning("Skipping tree structure schedule: Embedding model {Id} not found in database.", settings.AIEmbeddingModelId);
+                        }
+                        else if (embeddingModel.Type == "local")
+                        {
+                            if (string.IsNullOrEmpty(embeddingModel.LocalPath) || !File.Exists(embeddingModel.LocalPath))
+                            {
+                                canSchedule = false;
+                                var logger = ServiceProvider?.GetService<ILogger<App>>();
+                                logger?.LogWarning("Skipping tree structure schedule: Local embedding model file not found at {Path}.", embeddingModel.LocalPath ?? "null");
+                            }
+                        }
+                    }
+
+                    if (canSchedule)
+                    {
+                        await _jobScheduler.ScheduleRecurringJobAsync<Baiss.Infrastructure.Jobs.UpdateTreeStructureJob>(
+                            "tree-structure-update-job",
+                            settings.TreeStructureSchedule,
+                            null);
+
+                        var logger = ServiceProvider?.GetService<ILogger<App>>();
+                        logger?.LogInformation("Tree structure update job scheduled with cron: {Cron}", settings.TreeStructureSchedule);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var logger = ServiceProvider?.GetService<ILogger<App>>();
+                logger?.LogError(ex, "Failed to schedule tree structure update job");
             }
         }
 

@@ -1,6 +1,7 @@
 using Baiss.Application.DTOs;
 using Baiss.Application.Interfaces;
 using Baiss.Domain.Entities;
+using Baiss.Infrastructure.Jobs;
 // using Baiss.Infrastructure.Interop;
 using DotNetEnv;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,7 @@ public class SettingsService : ISettingsService
     // private readonly IPythonBridgeService _pythonBridgeService;
     private readonly IModelRepository _modelRepository;
     private readonly ILaunchServerService _launchServerService;
+    private readonly IJobSchedulerService _jobSchedulerService;
 
     private CancellationTokenSource _cancellationTokenSource;
 
@@ -36,7 +38,7 @@ public class SettingsService : ISettingsService
 
     private readonly IAvailableModelRepository _availableModelRepository;
 
-    public SettingsService(ISettingsRepository settingsRepository, IExternalApiService externalApiService, ILogger<SettingsService> logger, ITreeStructureService treeStructureService, IModelRepository modelRepository, ILaunchServerService launchServerService, IAvailableModelRepository availableModelRepository, CancellationTokenSource cancellationTokenSource = null, Task thr = null)
+    public SettingsService(ISettingsRepository settingsRepository, IExternalApiService externalApiService, ILogger<SettingsService> logger, ITreeStructureService treeStructureService, IModelRepository modelRepository, ILaunchServerService launchServerService, IAvailableModelRepository availableModelRepository, IJobSchedulerService jobSchedulerService, CancellationTokenSource cancellationTokenSource = null, Task thr = null)
     {
         _settingsRepository = settingsRepository ?? throw new ArgumentNullException(nameof(settingsRepository));
         _externalApiService = externalApiService ?? throw new ArgumentNullException(nameof(externalApiService));
@@ -45,6 +47,7 @@ public class SettingsService : ISettingsService
         _modelRepository = modelRepository ?? throw new ArgumentNullException(nameof(modelRepository));
         _launchServerService = launchServerService ?? throw new ArgumentNullException(nameof(launchServerService));
         _availableModelRepository = availableModelRepository ?? throw new ArgumentNullException(nameof(availableModelRepository));
+        _jobSchedulerService = jobSchedulerService ?? throw new ArgumentNullException(nameof(jobSchedulerService));
         _thr = thr;
         _cancellationTokenSource = cancellationTokenSource ?? new CancellationTokenSource();
         _pauseRequested = false;
@@ -75,6 +78,8 @@ public class SettingsService : ISettingsService
                 AIModelProviderScope = settings.AIModelProviderScope,
                 AIChatModelId = settings.AIChatModelId,
                 AIEmbeddingModelId = settings.AIEmbeddingModelId,
+                TreeStructureSchedule = settings.TreeStructureSchedule,
+                TreeStructureScheduleEnabled = settings.TreeStructureScheduleEnabled,
                 CreatedAt = settings.CreatedAt,
                 UpdatedAt = settings.UpdatedAt
             };
@@ -223,6 +228,47 @@ public class SettingsService : ISettingsService
         catch (Exception ex)
         {
             throw new InvalidOperationException($"Error retrieving settings: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<SettingsDto?> UpdateTreeStructureScheduleAsync(UpdateTreeStructureScheduleDto scheduleDto)
+    {
+        try
+        {
+            var settings = await _settingsRepository.GetAsync();
+            if (settings == null) return null;
+
+            settings.TreeStructureSchedule = scheduleDto.Schedule;
+            settings.TreeStructureScheduleEnabled = scheduleDto.Enabled;
+            settings.UpdatedAt = DateTime.UtcNow;
+
+            await _settingsRepository.SaveAsync(settings);
+
+            // Update the running job
+            if (scheduleDto.Enabled)
+            {
+                // Cancel existing job first to be safe
+                await _jobSchedulerService.CancelJobAsync("tree-structure-update-job");
+
+                // Schedule with new cron expression
+                await _jobSchedulerService.ScheduleRecurringJobAsync<UpdateTreeStructureJob>(
+                    "tree-structure-update-job",
+                    scheduleDto.Schedule
+                );
+                _logger.LogInformation("Rescheduled tree structure update job with cron: {Cron}", scheduleDto.Schedule);
+            }
+            else
+            {
+                await _jobSchedulerService.CancelJobAsync("tree-structure-update-job");
+                _logger.LogInformation("Cancelled tree structure update job");
+            }
+
+            return MapToDto(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating tree structure schedule settings");
+            return null;
         }
     }
 
