@@ -48,6 +48,9 @@ public class Settings
     /// </summary>
     public string AIModelProviderScope { get; set; } = "local"; // local | hosted | databricks
 
+    public string TreeStructureSchedule { get; set; } = "0 0 0 * * ?";
+    public bool TreeStructureScheduleEnabled { get; set; } = false;
+
     /// <summary>
     /// Selected AI chat model identifier
     /// </summary>
@@ -69,7 +72,7 @@ public class Settings
     /// </summary>
     public bool HasShownWelcomeModal { get; set; } = false;
 
-    
+
 
 
 }

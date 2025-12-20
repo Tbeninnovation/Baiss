@@ -38,6 +38,13 @@ public interface ISettingsService
     Task<bool> UpdateAIModelProviderScopeAsync(string scope);
 
     /// <summary>
+    /// Updates tree structure schedule settings
+    /// </summary>
+    /// <param name="scheduleDto">The schedule settings to update</param>
+    /// <returns>Updated settings DTO if successful, null if failed</returns>
+    Task<SettingsDto?> UpdateTreeStructureScheduleAsync(UpdateTreeStructureScheduleDto scheduleDto);
+
+    /// <summary>
     /// Stops any ongoing background operations, such as tree structure updates.
     /// </summary>
     void StopBackgroundOperations();
