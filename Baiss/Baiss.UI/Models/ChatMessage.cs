@@ -75,9 +75,34 @@ namespace Baiss.UI.Models
                     _isStreaming = value;
                     OnPropertyChanged(nameof(IsStreaming));
                     OnPropertyChanged(nameof(IsComplete));
+                    OnPropertyChanged(nameof(IsWaitingForData));
                 }
             }
         }
+
+        private bool _isReceivingData = false;
+        /// <summary>
+        /// True when actively receiving data chunks from the WebSocket.
+        /// </summary>
+        public bool IsReceivingData
+        {
+            get => _isReceivingData;
+            set
+            {
+                if (_isReceivingData != value)
+                {
+                    _isReceivingData = value;
+                    OnPropertyChanged(nameof(IsReceivingData));
+                    OnPropertyChanged(nameof(IsWaitingForData));
+                }
+            }
+        }
+
+        /// <summary>
+        /// True when streaming is active but no data is currently being received (e.g., during code execution).
+        /// This is when we show the "Answering..." indicator.
+        /// </summary>
+        public bool IsWaitingForData => IsStreaming && !IsReceivingData;
 
         /// <summary>
         /// Returns true when the message is complete (not streaming) - used to show copy button

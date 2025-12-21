@@ -254,7 +254,7 @@ public class LaunchServerService : ILaunchServerService
         // Build arguments with the actual available port
         if (string.IsNullOrEmpty(additionalArgs))
         {
-            args += $" --host {host} --port {actualPort} --ctx-size 20480";
+            args += $" --host {host} --port {actualPort} --ctx-size 30000";
         }
         else
         {

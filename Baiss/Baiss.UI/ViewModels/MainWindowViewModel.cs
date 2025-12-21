@@ -1361,6 +1361,9 @@ public partial class MainWindowViewModel : ViewModelBase
                         // Check for code execution status marker
                         if (textChunk.StartsWith("[CODE_EXEC:"))
                         {
+                            // Code execution completed - we're now waiting for more data
+                            streamingMessage.IsReceivingData = false;
+                            
                             // Parse the marker: [CODE_EXEC:status:error]
                             var parts = textChunk.TrimStart('[').TrimEnd(']').Split(':');
                             if (parts.Length >= 2)
@@ -1384,6 +1387,9 @@ public partial class MainWindowViewModel : ViewModelBase
                             return; // Don't append the marker to content
                         }
 
+                        // We're actively receiving data
+                        streamingMessage.IsReceivingData = true;
+                        
                         if (!hasStartedStreaming && streamingMessage.IsLoadingMessage)
                         {
                             streamingMessage.IsLoadingMessage = false;
@@ -1398,6 +1404,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         streamingMessage.IsStreaming = false;
+                        streamingMessage.IsReceivingData = false;
                         streamingMessage.IsLoadingMessage = false;
 
                         var contentSuccess = finalResult.Content?.Success;
@@ -1471,6 +1478,7 @@ public partial class MainWindowViewModel : ViewModelBase
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 streamingMessage.IsStreaming = false;
+                streamingMessage.IsReceivingData = false;
                 streamingMessage.IsLoadingMessage = false;
 
                 // Show model error modal with generic guidance
@@ -1486,6 +1494,7 @@ public partial class MainWindowViewModel : ViewModelBase
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 IsBotTyping = false;
+                streamingMessage.IsReceivingData = false;
                 streamingMessage.IsLoadingMessage = false;
             });
         }
