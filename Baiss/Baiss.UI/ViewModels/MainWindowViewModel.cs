@@ -501,6 +501,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
         // Initialize SettingsViewModel
         _settingsViewModel = settingsViewModel ?? throw new ArgumentNullException(nameof(settingsViewModel));
+
+        // Load settings on startup to ensure model selections are populated
+        _ = _settingsViewModel.ReloadSettingsAsync();
+
         _settingsViewModel.PropertyChanged += (s, e) =>
         {
             // Forward property changes from SettingsViewModel
@@ -772,12 +776,12 @@ public partial class MainWindowViewModel : ViewModelBase
                     {
                         // Strip XML-like tags (e.g., <answer>, </answer>) from content
                         var cleanContent = System.Text.RegularExpressions.Regex.Replace(
-                            message.Content, 
-                            @"</?(?:answer|thinking|search_tool)[^>]*>", 
-                            "", 
+                            message.Content,
+                            @"</?(?:answer|thinking|search_tool)[^>]*>",
+                            "",
                             System.Text.RegularExpressions.RegexOptions.IgnoreCase
                         ).Trim();
-                        
+
                         await clipboard.SetTextAsync(cleanContent);
                         Views.MainWindow.ToastServiceInstance.ShowSuccess("Message copied to clipboard", 2000);
                     }
@@ -1362,15 +1366,15 @@ public partial class MainWindowViewModel : ViewModelBase
                             if (parts.Length >= 2)
                             {
                                 var isSuccess = parts[1] == "success";
-                                var errorMsg = parts.Length > 2 && !string.IsNullOrEmpty(parts[2]) 
-                                    ? string.Join(":", parts.Skip(2)) 
+                                var errorMsg = parts.Length > 2 && !string.IsNullOrEmpty(parts[2])
+                                    ? string.Join(":", parts.Skip(2))
                                     : null;
-                                
+
                                 // Get the current code block index (count of code segments)
                                 var codeBlockCount = streamingMessage.MessageSegments
                                     .OfType<Models.CodeExecutionMessageSegment>()
                                     .Count();
-                                
+
                                 // Update the last code block (index = count - 1)
                                 if (codeBlockCount > 0)
                                 {
@@ -1379,7 +1383,7 @@ public partial class MainWindowViewModel : ViewModelBase
                             }
                             return; // Don't append the marker to content
                         }
-                        
+
                         if (!hasStartedStreaming && streamingMessage.IsLoadingMessage)
                         {
                             streamingMessage.IsLoadingMessage = false;

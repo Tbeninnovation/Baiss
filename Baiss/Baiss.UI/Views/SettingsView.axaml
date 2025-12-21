@@ -888,8 +888,8 @@
                                 <!-- Tree Structure Schedule Section -->
                                 <StackPanel Spacing="15">
                                     <StackPanel Spacing="8">
-                                        <TextBlock Text="Tree Structure Update Schedule" FontSize="13.4" FontWeight="SemiBold" />
-                                        <TextBlock Text="Configure when the tree structure update job should run automatically." FontSize="13.4" Foreground="#A5CFE5" />
+                                        <TextBlock Text="File Update: Schedule" FontSize="13.4" FontWeight="SemiBold" />
+                                        <TextBlock Text="Select the frequency for automatic sync when the files change. " FontSize="13.4" Foreground="#A5CFE5" />
                                     </StackPanel>
 
                                     <Grid ColumnDefinitions="*,Auto">
@@ -910,6 +910,7 @@
                                         <TextBlock Text="Update Frequency" FontSize="13.4" FontWeight="SemiBold" />
                                         <ComboBox ItemsSource="{Binding ScheduleOptions}"
                                                   SelectedItem="{Binding SelectedScheduleOption}"
+                                                  IsEnabled="{Binding TreeStructureScheduleEnabled}"
                                                   HorizontalAlignment="Stretch">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>

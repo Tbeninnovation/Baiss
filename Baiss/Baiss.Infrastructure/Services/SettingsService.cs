@@ -1224,6 +1224,36 @@ public class SettingsService : ISettingsService
             //     }
             // }
 
+            // Step 3: Check settings and remove models if they don't exist in external API
+            var settings = await _settingsRepository.GetAsync();
+            if (settings != null && settings.AIModelType == ModelTypes.Local)
+            {
+                bool settingsChanged = false;
+
+                // Check AIChatModelId
+                if (!string.IsNullOrEmpty(settings.AIChatModelId) && !externalModelIds.Contains(settings.AIChatModelId))
+                {
+                    _logger.LogInformation("Removing AIChatModelId '{ModelId}' from settings as it no longer exists in external API", settings.AIChatModelId);
+                    settings.AIChatModelId = string.Empty;
+                    settingsChanged = true;
+                }
+
+                // Check AIEmbeddingModelId
+                if (!string.IsNullOrEmpty(settings.AIEmbeddingModelId) && !externalModelIds.Contains(settings.AIEmbeddingModelId))
+                {
+                    _logger.LogInformation("Removing AIEmbeddingModelId '{ModelId}' from settings as it no longer exists in external API", settings.AIEmbeddingModelId);
+                    settings.AIEmbeddingModelId = string.Empty;
+                    settingsChanged = true;
+                }
+
+                if (settingsChanged)
+                {
+                    settings.UpdatedAt = DateTime.UtcNow;
+                    await _settingsRepository.SaveAsync(settings);
+                    _logger.LogInformation("Settings updated after model synchronization");
+                }
+            }
+
             _logger.LogInformation("Database synchronization with external API completed successfully");
         }
         catch (Exception ex)

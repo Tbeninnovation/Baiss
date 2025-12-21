@@ -310,6 +310,12 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         get => _selectedScheduleOption;
         set
         {
+            // if (!CanEnableSchedule)
+            // {
+            //     OnPropertyChanged(nameof(SelectedScheduleOption));
+            //     return;
+            // }
+
             if (SetProperty(ref _selectedScheduleOption, value) && value != null)
             {
                 TreeStructureSchedule = value.CronExpression;
@@ -334,6 +340,12 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         get => _treeStructureScheduleEnabled;
         set
         {
+            // if (!CanEnableSchedule && value)
+            // {
+            //     OnPropertyChanged(nameof(TreeStructureScheduleEnabled));
+            //     return;
+            // }
+
             if (SetProperty(ref _treeStructureScheduleEnabled, value))
             {
                 HasScheduleChanges = true;
@@ -2834,14 +2846,15 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            // Only restore if we're in local model scope, don't already have selections, and not suppressing auto-load
-            if (AIModelProviderScope == "local" && SelectedLocalChatModel == null && SelectedLocalEmbeddingModel == null && !_suppressAutoLoad)
+            // Only restore if we're in local model scope and not suppressing auto-load
+            // We check individual selections inside to allow partial restoration
+            if (AIModelProviderScope == "local" && !_suppressAutoLoad)
             {
                 // Get current settings from database
                 var settings = await _settingsUseCase.GetSettingsUseCaseAsync();
 
-                // Restore chat model selection
-                if (!string.IsNullOrWhiteSpace(settings.AIChatModelId))
+                // Restore chat model selection if not already selected
+                if (SelectedLocalChatModel == null && !string.IsNullOrWhiteSpace(settings.AIChatModelId))
                 {
                     var localChatModel = DownloadedLocalChatModels.FirstOrDefault(m => m.Id == settings.AIChatModelId);
                     if (localChatModel != null)
@@ -2851,8 +2864,8 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
                     }
                 }
 
-                // Restore embedding model selection
-                if (!string.IsNullOrWhiteSpace(settings.AIEmbeddingModelId))
+                // Restore embedding model selection if not already selected
+                if (SelectedLocalEmbeddingModel == null && !string.IsNullOrWhiteSpace(settings.AIEmbeddingModelId))
                 {
                     var localEmbeddingModel = DownloadedLocalEmbeddingModels.FirstOrDefault(m => m.Id == settings.AIEmbeddingModelId);
                     if (localEmbeddingModel != null)
