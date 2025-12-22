@@ -401,13 +401,7 @@ public partial class MainWindow : Window
         ScrollToBottom();
     }
 
-    private void Root_PointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-        {
-            BeginMoveDrag(e);
-        }
-    }
+
 
     private void FloatingButton_PointerPressed(object? sender, PointerPressedEventArgs e)
     {

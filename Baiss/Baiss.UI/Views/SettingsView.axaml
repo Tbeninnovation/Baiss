@@ -1,4 +1,5 @@
-﻿<UserControl x:Class="Baiss.UI.Views.SettingsView"
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<UserControl x:Class="Baiss.UI.Views.SettingsView"
              xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,69 +7,83 @@
              xmlns:vm="using:Baiss.UI.ViewModels"
              xmlns:svg="using:Avalonia.Svg.Skia"
              xmlns:conv="using:Baiss.UI.Converters"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d"
+             d:DesignWidth="800"
+             d:DesignHeight="450"
              x:DataType="vm:SettingsViewModel">
-
     <UserControl.Resources>
         <vm:NavigationBackgroundConverter x:Key="NavigationBackgroundConverter" />
-        <vm:ZeroToBoolConverter x:Key="NotNullToBoolConverter" Invert="True" />
+        <vm:ZeroToBoolConverter x:Key="NotNullToBoolConverter"
+                                Invert="True" />
         <vm:ZeroToBoolConverter x:Key="NullToBoolConverter" />
-        <LinearGradientBrush x:Key="ModelCardBackgroundBrush" StartPoint="0%,0%" EndPoint="100%,100%">
-            <GradientStop Color="rgba(15,23,42,0.4)" Offset="0.0" />
-            <GradientStop Color="rgba(30,41,59,0.2)" Offset="1.0" />
+        <LinearGradientBrush x:Key="ModelCardBackgroundBrush"
+                             StartPoint="0%,0%"
+                             EndPoint="100%,100%">
+            <GradientStop Color="rgba(15,23,42,0.4)"
+                          Offset="0.0" />
+            <GradientStop Color="rgba(30,41,59,0.2)"
+                          Offset="1.0" />
         </LinearGradientBrush>
         <conv:EqualityMultiValueConverter x:Key="EqualityMultiValueConverter" />
         <conv:ScopeEqualsConverter x:Key="ScopeEqualsConverter" />
         <conv:PercentageToOffsetConverter x:Key="PercentageToOffsetConverter" />
     </UserControl.Resources>
-
     <Grid ColumnDefinitions="200,*">
-
-            <Grid Margin="5,10,5,10" RowDefinitions="Auto,*">
-
-                <!-- Settings Navigation -->
-                <ScrollViewer Grid.Row="1">
-                    <StackPanel Margin="5,0,5,15">
-                        <ItemsControl ItemsSource="{Binding SettingsNavigationItems}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Button Margin="0,2"
-                                            Padding="12,10"
-                                            HorizontalAlignment="Stretch"
-                                            HorizontalContentAlignment="Left"
-                                            Background="{Binding IsSelected, Converter={StaticResource NavigationBackgroundConverter}}"
-                                            BorderBrush="rgba(255,255,255,0.05)"
-                                            BorderThickness="1"
-                                            Command="{Binding $parent[UserControl].DataContext.SelectSettingsItemCommand}"
-                                            CommandParameter="{Binding}"
-                                            CornerRadius="6">
-                                        <Button.Resources>
-                                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="rgba(59, 130, 246, 1)" />
-                                            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="rgba(59, 130, 246, 1)" />
-                                            <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="rgba(255,255,255,0.05)" />
-                                            <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="rgba(255,255,255,0.05)" />
-                                            <SolidColorBrush x:Key="ButtonBorderBrush" Color="rgba(255,255,255,0.05)" />
-                                        </Button.Resources>
-                                        <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <svg:Svg Path="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" />
-                                            <TextBlock Text="{Binding Title}" FontSize="13.4" VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </ScrollViewer>
-            </Grid>
-
+        <Grid Margin="5,10,5,10"
+              RowDefinitions="Auto,*">
+            <!-- Settings Navigation -->
+            <ScrollViewer Grid.Row="1">
+                <StackPanel Margin="5,0,5,15">
+                    <ItemsControl ItemsSource="{Binding SettingsNavigationItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Margin="0,2"
+                                        Padding="12,10"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Left"
+                                        Background="{Binding IsSelected, Converter={StaticResource NavigationBackgroundConverter}}"
+                                        BorderBrush="rgba(255,255,255,0.05)"
+                                        BorderThickness="1"
+                                        Command="{Binding $parent[UserControl].DataContext.SelectSettingsItemCommand}"
+                                        CommandParameter="{Binding}"
+                                        CornerRadius="6">
+                                    <Button.Resources>
+                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                         Color="rgba(59, 130, 246, 1)" />
+                                        <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                         Color="rgba(59, 130, 246, 1)" />
+                                        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver"
+                                                         Color="rgba(255,255,255,0.05)" />
+                                        <SolidColorBrush x:Key="ButtonBorderBrushPressed"
+                                                         Color="rgba(255,255,255,0.05)" />
+                                        <SolidColorBrush x:Key="ButtonBorderBrush"
+                                                         Color="rgba(255,255,255,0.05)" />
+                                    </Button.Resources>
+                                    <StackPanel Orientation="Horizontal"
+                                                Spacing="10">
+                                        <svg:Svg Path="{Binding Icon}"
+                                                 Width="16"
+                                                 Height="16"
+                                                 VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Title}"
+                                                   FontSize="13.4"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
         <!-- Settings Content -->
-        <ScrollViewer Grid.Column="1" Margin="10,10,10,10">
-
-                <!-- Dynamic Content based on selected tab -->
-                <StackPanel>
-
+        <ScrollViewer Grid.Column="1"
+                      Margin="10,10,10,10">
+            <!-- Dynamic Content based on selected tab -->
+            <StackPanel>
                 <!-- AI Model Settings -->
-                <StackPanel IsVisible="{Binding IsAIModelsSelected}" Spacing="10">
+                <StackPanel IsVisible="{Binding IsAIModelsSelected}"
+                            Spacing="10">
                     <Border Background="rgba(19, 19, 19, 0.4)"
                             BorderBrush="rgba(255,255,255,0.05)"
                             BorderThickness="1"
@@ -76,14 +91,12 @@
                             Padding="30"
                             MinHeight="600">
                         <StackPanel Spacing="30">
-
                             <!-- AI Model Section -->
                             <StackPanel Spacing="18">
                                 <TextBlock Text="AI Models"
                                            FontSize="18.8"
                                            FontWeight="SemiBold"
                                            Foreground="White" />
-
                                 <StackPanel Spacing="24">
                                     <StackPanel Spacing="12">
                                         <StackPanel Spacing="4">
@@ -103,7 +116,9 @@
                                                       HorizontalAlignment="Stretch">
                                                 <ComboBox.ItemTemplate>
                                                     <DataTemplate>
-                                                        <TextBlock Text="{Binding DisplayText}" VerticalAlignment="Center" FontSize="13" />
+                                                        <TextBlock Text="{Binding DisplayText}"
+                                                                   VerticalAlignment="Center"
+                                                                   FontSize="13" />
                                                     </DataTemplate>
                                                 </ComboBox.ItemTemplate>
                                             </ComboBox>
@@ -115,64 +130,63 @@
                                                 <Run Text=" *"
                                                      Foreground="#EF4444" />
                                             </TextBlock>
-                                        <Border Background="{StaticResource ModelCardBackgroundBrush}"
-                                                BorderBrush="rgba(255,255,255,0.1)"
-                                                BorderThickness="1"
-                                                CornerRadius="6"
-                                                Padding="14,10">
-                                            <Grid ColumnDefinitions="*,Auto">
-                                                <StackPanel Spacing="2">
-                                                    <TextBlock Text="{Binding SelectedLocalEmbeddingModel.DisplayText, TargetNullValue='No embedding attached'}"
-                                                               FontSize="13"
-                                                               Foreground="White"
-                                                               TextWrapping="Wrap" />
-                                                    <TextBlock Text="{Binding SelectedLocalEmbeddingModel.Id, TargetNullValue='Choose an embedding to attach'}"
-                                                               FontSize="11"
-                                                               Foreground="#9CA3AF"
-                                                               TextWrapping="Wrap" />
-                                                </StackPanel>
-                                                <Grid Grid.Column="1"
-                                                      VerticalAlignment="Center"
-                                                      HorizontalAlignment="Right">
-                                                    <Button Content="Download"
-                                                            Command="{Binding DownloadModelCommand}"
-                                                            CommandParameter="{Binding SelectedLocalEmbeddingModel}"
-                                                            FontSize="12"
-                                                            Padding="12,6"
-                                                            Background="#3B82F6"
-                                                            Foreground="White"
-                                                            BorderBrush="#3B82F6"
-                                                            BorderThickness="1"
-                                                            CornerRadius="6"
-                                                            IsVisible="{Binding SelectedLocalEmbeddingModel.ShowDownloadButton}" />
-                                                    <Button Content="Remove"
-                                                            Command="{Binding RemoveModelCommand}"
-                                                            CommandParameter="{Binding SelectedLocalEmbeddingModel}"
-                                                            FontSize="12"
-                                                            Padding="12,6"
-                                                            Background="#DC2626"
-                                                            Foreground="White"
-                                                            BorderBrush="#DC2626"
-                                                            BorderThickness="1"
-                                                            CornerRadius="6"
-                                                            IsVisible="{Binding SelectedLocalEmbeddingModel.ShowDeleteButton}" />
-                                                    <ProgressBar Width="48"
-                                                                 Height="3"
-                                                                 Minimum="0"
-                                                                 Maximum="100"
-                                                                 Value="{Binding SelectedLocalEmbeddingModel.DownloadProgress}"
-                                                                 VerticalAlignment="Center"
-                                                                 HorizontalAlignment="Left"
-                                                                 IsVisible="{Binding SelectedLocalEmbeddingModel.ShowDownloadSpinner}" />
+                                            <Border Background="{StaticResource ModelCardBackgroundBrush}"
+                                                    BorderBrush="rgba(255,255,255,0.1)"
+                                                    BorderThickness="1"
+                                                    CornerRadius="6"
+                                                    Padding="14,10">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock Text="{Binding SelectedLocalEmbeddingModel.DisplayText, TargetNullValue='No embedding attached'}"
+                                                                   FontSize="13"
+                                                                   Foreground="White"
+                                                                   TextWrapping="Wrap" />
+                                                        <TextBlock Text="{Binding SelectedLocalEmbeddingModel.Id, TargetNullValue='Choose an embedding to attach'}"
+                                                                   FontSize="11"
+                                                                   Foreground="#9CA3AF"
+                                                                   TextWrapping="Wrap" />
+                                                    </StackPanel>
+                                                    <Grid Grid.Column="1"
+                                                          VerticalAlignment="Center"
+                                                          HorizontalAlignment="Right">
+                                                        <Button Content="Download"
+                                                                Command="{Binding DownloadModelCommand}"
+                                                                CommandParameter="{Binding SelectedLocalEmbeddingModel}"
+                                                                FontSize="12"
+                                                                Padding="12,6"
+                                                                Background="#3B82F6"
+                                                                Foreground="White"
+                                                                BorderBrush="#3B82F6"
+                                                                BorderThickness="1"
+                                                                CornerRadius="6"
+                                                                IsVisible="{Binding SelectedLocalEmbeddingModel.ShowDownloadButton}" />
+                                                        <Button Content="Remove"
+                                                                Command="{Binding RemoveModelCommand}"
+                                                                CommandParameter="{Binding SelectedLocalEmbeddingModel}"
+                                                                FontSize="12"
+                                                                Padding="12,6"
+                                                                Background="#DC2626"
+                                                                Foreground="White"
+                                                                BorderBrush="#DC2626"
+                                                                BorderThickness="1"
+                                                                CornerRadius="6"
+                                                                IsVisible="{Binding SelectedLocalEmbeddingModel.ShowDeleteButton}" />
+                                                        <ProgressBar Width="48"
+                                                                     Height="3"
+                                                                     Minimum="0"
+                                                                     Maximum="100"
+                                                                     Value="{Binding SelectedLocalEmbeddingModel.DownloadProgress}"
+                                                                     VerticalAlignment="Center"
+                                                                     HorizontalAlignment="Left"
+                                                                     IsVisible="{Binding SelectedLocalEmbeddingModel.ShowDownloadSpinner}" />
+                                                    </Grid>
                                                 </Grid>
-                                            </Grid>
-                                        </Border>
+                                            </Border>
                                         </StackPanel>
                                         <StackPanel Spacing="8">
                                             <TextBlock Text="Available Models"
                                                        FontSize="13.4"
                                                        FontWeight="Medium" />
-
                                             <!-- Search Bar -->
                                             <TextBox Watermark="Search models..."
                                                      Text="{Binding ModelSearchText}"
@@ -185,555 +199,727 @@
                                                      BorderThickness="1"
                                                      CornerRadius="4"
                                                      Padding="10,8" />
-
-                                                                                                                <!-- Models list as individual cards (bound) -->
-                                                        <ItemsControl ItemsSource="{Binding FilteredDownloadedLocalModels}"
-                                                                      IsVisible="{Binding HasDownloadedLocalModels}">
-                                                            <ItemsControl.ItemsPanel>
-                                                                <ItemsPanelTemplate>
-                                                                    <StackPanel Spacing="8" />
-                                                                </ItemsPanelTemplate>
-                                                            </ItemsControl.ItemsPanel>
-                                                            <ItemsControl.ItemTemplate>
-                                                                <DataTemplate>
-                                                                    <Border CornerRadius="8"
-                                                                            Padding="16,12"
-                                                                            BorderBrush="rgba(255,255,255,0.1)"
-                                                                            BorderThickness="1">
-                                                                        <Border.Background>
-                                                                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                                                                                <GradientStop Color="rgba(15,23,42,0.4)" Offset="0.0" />
-                                                                                <GradientStop Color="rgba(30,41,59,0.2)" Offset="1.0" />
-                                                                            </LinearGradientBrush>
-                                                                        </Border.Background>
-                                                                        <StackPanel Spacing="0">
-                                                                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
-                                                                                <!-- Title -->
-                                                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding DisplayText}" FontSize="15.2" FontWeight="SemiBold" Foreground="White" />
-
-                                                                                <!-- Description -->
-                                                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Description}" FontSize="12" Foreground="#9CA3AF" TextWrapping="Wrap" Margin="0,6,0,0" />
-
-                                                                                <!-- By Author Downloads on left -->
-                                                                                <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" Margin="0,6,0,0">
-                                                                                    <TextBlock Text="By" FontSize="12" Foreground="#6B7280" VerticalAlignment="Center" />
-                                                                                    <TextBlock Text="{Binding Author}" FontSize="12" Foreground="#9CA3AF" VerticalAlignment="Center" />
-                                                                                    <TextBlock Text="•" FontSize="12" Foreground="#6B7280" VerticalAlignment="Center" />
-                                                                                    <TextBlock Text="{Binding DownloadsFormatted}" FontSize="12" Foreground="#9CA3AF" VerticalAlignment="Center" />
-                                                                                    <TextBlock Text="downloads" FontSize="12" Foreground="#6B7280" VerticalAlignment="Center" />
-                                                                                </StackPanel>
-
-                                                                                <!-- Variants toggle on RIGHT BOTTOM -->
-                                                                                <ToggleButton Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" x:Name="ShowVariantsToggle" Padding="0" Background="Transparent" BorderThickness="0" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,100,0">
-                                                                                    <ToggleButton.Resources>
-                                                                                        <SolidColorBrush x:Key="ToggleButtonBackgroundPointerOver" Color="Transparent" />
-                                                                                        <SolidColorBrush x:Key="ToggleButtonBackgroundPressed" Color="Transparent" />
-                                                                                        <SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="Transparent" />
-                                                                                        <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver" Color="Transparent" />
-                                                                                    </ToggleButton.Resources>
-                                                                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                                                        <ToggleSwitch IsChecked="{Binding #ShowVariantsToggle.IsChecked}" OnContent="" OffContent="" />
-                                                                                        <TextBlock Text="Variants" FontSize="12" Foreground="#9CA3AF" VerticalAlignment="Center" />
-                                                                                    </StackPanel>
-                                                                                </ToggleButton>
-
-                                                                                <!-- Size and buttons on top right -->
-                                                                                <StackPanel Grid.Row="0" Grid.RowSpan="3" Grid.Column="1" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,4,0,0">
-                                                                                    <TextBlock Text="{Binding Size}" FontSize="13" Foreground="#9CA3AF" VerticalAlignment="Center" />
-                                                                                    <Button Content="Download" Padding="12,6" Background="#3B82F6" Foreground="White" BorderThickness="0" CornerRadius="6" FontSize="13" FontWeight="Medium" Command="{Binding $parent[UserControl].DataContext.DownloadModelCommand}" CommandParameter="{Binding}" IsVisible="{Binding ShowDownloadButton}">
-                                                                                        <Button.Resources>
-                                                                                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#2563EB" />
-                                                                                            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#1D4ED8" />
-                                                                                        </Button.Resources>
-                                                                                    </Button>
-                                                                                    <Button Content="Remove" Padding="12,6" Background="#EF4444" Foreground="White" BorderThickness="0" CornerRadius="6" FontSize="13" FontWeight="Medium" Command="{Binding $parent[UserControl].DataContext.RemoveModelCommand}" CommandParameter="{Binding}" IsVisible="{Binding ShowDeleteButton}">
-                                                                                        <Button.Resources>
-                                                                                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#DC2626" />
-                                                                                            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#B91C1C" />
-                                                                                        </Button.Resources>
-                                                                                    </Button>
-                                                                                    <ProgressBar Width="48" Height="3" Minimum="0" Maximum="100" Value="{Binding DownloadProgress}" VerticalAlignment="Center" HorizontalAlignment="Left" IsVisible="{Binding ShowDownloadSpinner}" />
-                                                                                </StackPanel>
-                                                                            </Grid>
-                                                                            <StackPanel Margin="0,12,0,0" IsVisible="{Binding #ShowVariantsToggle.IsChecked}">
-                                                                                <ItemsControl ItemsSource="{Binding Variants}">
-                                                                                    <ItemsControl.ItemsPanel>
-                                                                                        <ItemsPanelTemplate>
-                                                                                            <StackPanel Spacing="0" />
-                                                                                        </ItemsPanelTemplate>
-                                                                                    </ItemsControl.ItemsPanel>
-                                                                                    <ItemsControl.ItemTemplate>
-                                                                                        <DataTemplate>
-                                                                                            <Border Margin="0,6" Padding="0,0,6,0">
-                                                                                                <Grid ColumnDefinitions="*,Auto,Auto">
-                                                                                                    <TextBlock Grid.Column="0" Text="{Binding ShortDisplayName}" FontSize="13" Foreground="White" VerticalAlignment="Center" />
-                                                                                                    <TextBlock Grid.Column="1" Text="{Binding SizeText}" FontSize="12" Foreground="#6B7280" Margin="0,0,12,0" VerticalAlignment="Center" />
-                                                                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                                                                        <!-- Download icon when not downloading or downloaded -->
-                                                                                                        <Button Width="20"
-                                                                                                                Height="20"
-                                                                                                                Padding="0"
-                                                                                                                Background="Transparent"
-                                                                                                                BorderThickness="0"
-                                                                                                                Command="{Binding $parent[UserControl].DataContext.DownloadVariantCommand}"
-                                                                                                                CommandParameter="{Binding}"
-                                                                                                                IsVisible="{Binding ShowDownload}">
-                                                                                                            <Button.Resources>
-                                                                                                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="Transparent" />
-                                                                                                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="Transparent" />
-                                                                                                            </Button.Resources>
-                                                                                                            <svg:Svg Path="/Assets/Download.svg" Width="16" Height="16" />
-                                                                                                        </Button>
-
-                                                                                                        <!-- Progress while downloading -->
-                                                                                                        <ProgressBar Width="48"
-                                                                                                                     Height="3"
-                                                                                                                     Minimum="0"
-                                                                                                                     Maximum="100"
-                                                                                                                     Value="{Binding DownloadProgress}"
-                                                                                                                     VerticalAlignment="Center"
-                                                                                                                     HorizontalAlignment="Left"
-                                                                                                                     IsVisible="{Binding IsDownloading}" />
-
-                                                                                                        <!-- Trash when downloaded -->
-                                                                                                        <Button Width="20"
-                                                                                                                Height="20"
-                                                                                                                Padding="0"
-                                                                                                                Background="Transparent"
-                                                                                                                BorderThickness="0"
-                                                                                                                Command="{Binding $parent[UserControl].DataContext.RemoveModelCommand}"
-                                                                                                                CommandParameter="{Binding ParentModel}"
-                                                                                                                IsVisible="{Binding IsDownloaded}">
-                                                                                                            <Button.Resources>
-                                                                                                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="Transparent" />
-                                                                                                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="Transparent" />
-                                                                                                            </Button.Resources>
-                                                                                                            <svg:Svg Path="/Assets/trash.svg" Width="16" Height="16" />
-                                                                                                        </Button>
-                                                                                                    </StackPanel>
-                                                                                                </Grid>
-                                                                                            </Border>
-                                                                                        </DataTemplate>
-                                                                                    </ItemsControl.ItemTemplate>
-                                                                                </ItemsControl>
-                                                                            </StackPanel>
+                                            <!-- Models list as individual cards (bound) -->
+                                            <ItemsControl ItemsSource="{Binding FilteredDownloadedLocalModels}"
+                                                          IsVisible="{Binding HasDownloadedLocalModels}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Spacing="8" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border CornerRadius="8"
+                                                                Padding="16,12"
+                                                                BorderBrush="rgba(255,255,255,0.1)"
+                                                                BorderThickness="1">
+                                                            <Border.Background>
+                                                                <LinearGradientBrush StartPoint="0%,0%"
+                                                                                     EndPoint="100%,100%">
+                                                                    <GradientStop Color="rgba(15,23,42,0.4)"
+                                                                                  Offset="0.0" />
+                                                                    <GradientStop Color="rgba(30,41,59,0.2)"
+                                                                                  Offset="1.0" />
+                                                                </LinearGradientBrush>
+                                                            </Border.Background>
+                                                            <StackPanel Spacing="0">
+                                                                <Grid ColumnDefinitions="*,Auto"
+                                                                      RowDefinitions="Auto,Auto,Auto">
+                                                                    <!-- Title -->
+                                                                    <TextBlock Grid.Row="0"
+                                                                               Grid.Column="0"
+                                                                               Text="{Binding DisplayText}"
+                                                                               FontSize="15.2"
+                                                                               FontWeight="SemiBold"
+                                                                               Foreground="White" />
+                                                                    <!-- Description -->
+                                                                    <TextBlock Grid.Row="1"
+                                                                               Grid.Column="0"
+                                                                               Text="{Binding Description}"
+                                                                               FontSize="12"
+                                                                               Foreground="#9CA3AF"
+                                                                               TextWrapping="Wrap"
+                                                                               Margin="0,6,0,0" />
+                                                                    <!-- By Author Downloads on left -->
+                                                                    <StackPanel Grid.Row="2"
+                                                                                Grid.Column="0"
+                                                                                Orientation="Horizontal"
+                                                                                Spacing="10"
+                                                                                VerticalAlignment="Center"
+                                                                                Margin="0,6,0,0">
+                                                                        <TextBlock Text="By"
+                                                                                   FontSize="12"
+                                                                                   Foreground="#6B7280"
+                                                                                   VerticalAlignment="Center" />
+                                                                        <TextBlock Text="{Binding Author}"
+                                                                                   FontSize="12"
+                                                                                   Foreground="#9CA3AF"
+                                                                                   VerticalAlignment="Center" />
+                                                                        <TextBlock Text="•"
+                                                                                   FontSize="12"
+                                                                                   Foreground="#6B7280"
+                                                                                   VerticalAlignment="Center" />
+                                                                        <TextBlock Text="{Binding DownloadsFormatted}"
+                                                                                   FontSize="12"
+                                                                                   Foreground="#9CA3AF"
+                                                                                   VerticalAlignment="Center" />
+                                                                        <TextBlock Text="downloads"
+                                                                                   FontSize="12"
+                                                                                   Foreground="#6B7280"
+                                                                                   VerticalAlignment="Center" />
+                                                                    </StackPanel>
+                                                                    <!-- Variants toggle on RIGHT BOTTOM -->
+                                                                    <ToggleButton Grid.Row="2"
+                                                                                  Grid.Column="0"
+                                                                                  Grid.ColumnSpan="2"
+                                                                                  x:Name="ShowVariantsToggle"
+                                                                                  Padding="0"
+                                                                                  Background="Transparent"
+                                                                                  BorderThickness="0"
+                                                                                  VerticalAlignment="Center"
+                                                                                  HorizontalAlignment="Right"
+                                                                                  Margin="0,0,100,0">
+                                                                        <ToggleButton.Resources>
+                                                                            <SolidColorBrush x:Key="ToggleButtonBackgroundPointerOver"
+                                                                                             Color="Transparent" />
+                                                                            <SolidColorBrush x:Key="ToggleButtonBackgroundPressed"
+                                                                                             Color="Transparent" />
+                                                                            <SolidColorBrush x:Key="ToggleButtonBackgroundChecked"
+                                                                                             Color="Transparent" />
+                                                                            <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver"
+                                                                                             Color="Transparent" />
+                                                                        </ToggleButton.Resources>
+                                                                        <StackPanel Orientation="Horizontal"
+                                                                                    Spacing="6"
+                                                                                    VerticalAlignment="Center">
+                                                                            <ToggleSwitch IsChecked="{Binding #ShowVariantsToggle.IsChecked}"
+                                                                                          OnContent=""
+                                                                                          OffContent="" />
+                                                                            <TextBlock Text="Variants"
+                                                                                       FontSize="12"
+                                                                                       Foreground="#9CA3AF"
+                                                                                       VerticalAlignment="Center" />
                                                                         </StackPanel>
-                                                                    </Border>
-                                                                </DataTemplate>
-                                                            </ItemsControl.ItemTemplate>
-                                                        </ItemsControl>
-                                                        <!-- Show "No available models yet" if empty --><!-- Show "No available models yet" if empty -->
-                                                        <TextBlock Text="No available models yet."
-                                                                   FontSize="13.4"
-                                                                   Foreground="{StaticResource SettingsSecondaryTextBrush}"
-                                                                   HorizontalAlignment="Center"
-                                                                   Margin="0,20"
-                                                                   IsVisible="{Binding HasDownloadedLocalModels, Converter={x:Static BoolConverters.Not}}" />
+                                                                    </ToggleButton>
+                                                                    <!-- Size and buttons on top right -->
+                                                                    <StackPanel Grid.Row="0"
+                                                                                Grid.RowSpan="3"
+                                                                                Grid.Column="1"
+                                                                                Orientation="Horizontal"
+                                                                                Spacing="12"
+                                                                                HorizontalAlignment="Right"
+                                                                                VerticalAlignment="Top"
+                                                                                Margin="0,4,0,0">
+                                                                        <TextBlock Text="{Binding Size}"
+                                                                                   FontSize="13"
+                                                                                   Foreground="#9CA3AF"
+                                                                                   VerticalAlignment="Center" />
+                                                                        <Button Content="Download"
+                                                                                Padding="12,6"
+                                                                                Background="#3B82F6"
+                                                                                Foreground="White"
+                                                                                BorderThickness="0"
+                                                                                CornerRadius="6"
+                                                                                FontSize="13"
+                                                                                FontWeight="Medium"
+                                                                                Command="{Binding $parent[UserControl].DataContext.DownloadModelCommand}"
+                                                                                CommandParameter="{Binding}"
+                                                                                IsVisible="{Binding ShowDownloadButton}">
+                                                                            <Button.Resources>
+                                                                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                                                                 Color="#2563EB" />
+                                                                                <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                                                                 Color="#1D4ED8" />
+                                                                            </Button.Resources>
+                                                                        </Button>
+                                                                        <Button Content="Remove"
+                                                                                Padding="12,6"
+                                                                                Background="#EF4444"
+                                                                                Foreground="White"
+                                                                                BorderThickness="0"
+                                                                                CornerRadius="6"
+                                                                                FontSize="13"
+                                                                                FontWeight="Medium"
+                                                                                Command="{Binding $parent[UserControl].DataContext.RemoveModelCommand}"
+                                                                                CommandParameter="{Binding}"
+                                                                                IsVisible="{Binding ShowDeleteButton}">
+                                                                            <Button.Resources>
+                                                                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                                                                 Color="#DC2626" />
+                                                                                <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                                                                 Color="#B91C1C" />
+                                                                            </Button.Resources>
+                                                                        </Button>
+                                                                        <ProgressBar Width="48"
+                                                                                     Height="3"
+                                                                                     Minimum="0"
+                                                                                     Maximum="100"
+                                                                                     Value="{Binding DownloadProgress}"
+                                                                                     VerticalAlignment="Center"
+                                                                                     HorizontalAlignment="Left"
+                                                                                     IsVisible="{Binding ShowDownloadSpinner}" />
+                                                                    </StackPanel>
+                                                                </Grid>
+                                                                <StackPanel Margin="0,12,0,0"
+                                                                            IsVisible="{Binding #ShowVariantsToggle.IsChecked}">
+                                                                    <ItemsControl ItemsSource="{Binding Variants}">
+                                                                        <ItemsControl.ItemsPanel>
+                                                                            <ItemsPanelTemplate>
+                                                                                <StackPanel Spacing="0" />
+                                                                            </ItemsPanelTemplate>
+                                                                        </ItemsControl.ItemsPanel>
+                                                                        <ItemsControl.ItemTemplate>
+                                                                            <DataTemplate>
+                                                                                <Border Margin="0,6"
+                                                                                        Padding="0,0,6,0">
+                                                                                    <Grid ColumnDefinitions="*,Auto,Auto">
+                                                                                        <TextBlock Grid.Column="0"
+                                                                                                   Text="{Binding ShortDisplayName}"
+                                                                                                   FontSize="13"
+                                                                                                   Foreground="White"
+                                                                                                   VerticalAlignment="Center" />
+                                                                                        <TextBlock Grid.Column="1"
+                                                                                                   Text="{Binding SizeText}"
+                                                                                                   FontSize="12"
+                                                                                                   Foreground="#6B7280"
+                                                                                                   Margin="0,0,12,0"
+                                                                                                   VerticalAlignment="Center" />
+                                                                                        <StackPanel Grid.Column="2"
+                                                                                                    Orientation="Horizontal"
+                                                                                                    Spacing="6"
+                                                                                                    VerticalAlignment="Center">
+                                                                                            <!-- Download icon when not downloading or downloaded -->
+                                                                                            <Button Width="20"
+                                                                                                    Height="20"
+                                                                                                    Padding="0"
+                                                                                                    Background="Transparent"
+                                                                                                    BorderThickness="0"
+                                                                                                    Command="{Binding $parent[UserControl].DataContext.DownloadVariantCommand}"
+                                                                                                    CommandParameter="{Binding}"
+                                                                                                    IsVisible="{Binding ShowDownload}">
+                                                                                                <Button.Resources>
+                                                                                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                                                                                     Color="Transparent" />
+                                                                                                    <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                                                                                     Color="Transparent" />
+                                                                                                </Button.Resources>
+                                                                                                <svg:Svg Path="/Assets/Download.svg"
+                                                                                                         Width="16"
+                                                                                                         Height="16" />
+                                                                                            </Button>
+                                                                                            <!-- Progress while downloading -->
+                                                                                            <ProgressBar Width="48"
+                                                                                                         Height="3"
+                                                                                                         Minimum="0"
+                                                                                                         Maximum="100"
+                                                                                                         Value="{Binding DownloadProgress}"
+                                                                                                         VerticalAlignment="Center"
+                                                                                                         HorizontalAlignment="Left"
+                                                                                                         IsVisible="{Binding IsDownloading}" />
+                                                                                            <!-- Trash when downloaded -->
+                                                                                            <Button Width="20"
+                                                                                                    Height="20"
+                                                                                                    Padding="0"
+                                                                                                    Background="Transparent"
+                                                                                                    BorderThickness="0"
+                                                                                                    Command="{Binding $parent[UserControl].DataContext.RemoveModelCommand}"
+                                                                                                    CommandParameter="{Binding ParentModel}"
+                                                                                                    IsVisible="{Binding IsDownloaded}">
+                                                                                                <Button.Resources>
+                                                                                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                                                                                     Color="Transparent" />
+                                                                                                    <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                                                                                     Color="Transparent" />
+                                                                                                </Button.Resources>
+                                                                                                <svg:Svg Path="/Assets/trash.svg"
+                                                                                                         Width="16"
+                                                                                                         Height="16" />
+                                                                                            </Button>
+                                                                                        </StackPanel>
+                                                                                    </Grid>
+                                                                                </Border>
+                                                                            </DataTemplate>
+                                                                        </ItemsControl.ItemTemplate>
+                                                                    </ItemsControl>
+                                                                </StackPanel>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <!-- Show "No available models yet" if empty -->
+                                            <!-- Show "No available models yet" if empty -->
+                                            <TextBlock Text="No available models yet."
+                                                       FontSize="13.4"
+                                                       Foreground="{StaticResource SettingsSecondaryTextBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       Margin="0,20"
+                                                       IsVisible="{Binding HasDownloadedLocalModels, Converter={x:Static BoolConverters.Not}}" />
                                         </StackPanel>
                                     </StackPanel>
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
-                        </Border>
-                    </StackPanel>
-
-                                        <!-- File access Settings -->
-                    <StackPanel IsVisible="{Binding IsAIAccessSelected}" Spacing="10">
-                        <Border Background="rgba(19, 19, 19, 0.4)"
-                                BorderBrush="rgba(255,255,255,0.05)"
-                                BorderThickness="1"
-                                CornerRadius="12"
-                                Padding="30">
-                            <StackPanel Spacing="30">
-                                <StackPanel Spacing="5">
-                                    <TextBlock Text="{Binding CurrentSettingsTitle}"
-                                        FontSize="22.4"
-                                        FontWeight="Bold"
-                                    />
-                                </StackPanel>
-
-                                <!-- File access: Read Access Section -->
-                                <StackPanel Spacing="15">
-                                    <Grid RowDefinitions="Auto,Auto">
-                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
-                                            <TextBlock Text="File Access: Read Access"
-                                                      FontSize="13.4"
-                                                      FontWeight="Bold"
-                                                      VerticalAlignment="Center" />
-                                        </StackPanel>
-                                        <TextBlock Grid.Row="1"
-                                                   Text="Choose which folders the AI can read."
+                    </Border>
+                </StackPanel>
+                <!-- File access Settings -->
+                <StackPanel IsVisible="{Binding IsAIAccessSelected}"
+                            Spacing="10">
+                    <Border Background="rgba(19, 19, 19, 0.4)"
+                            BorderBrush="rgba(255,255,255,0.05)"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="30">
+                        <StackPanel Spacing="30">
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="{Binding CurrentSettingsTitle}"
+                                           FontSize="22.4"
+                                           FontWeight="Bold" />
+                            </StackPanel>
+                            <!-- File access: Read Access Section -->
+                            <StackPanel Spacing="15">
+                                <Grid RowDefinitions="Auto,Auto">
+                                    <StackPanel Grid.Row="0"
+                                                Orientation="Horizontal"
+                                                Spacing="10">
+                                        <TextBlock Text="File Access: Read Access"
                                                    FontSize="13.4"
-                                                   Foreground="#A5CFE5"
-                                                   Margin="0,10,0,0" />
-
-                                        <!-- Floating Apply/Cancel buttons -->
-                                        <StackPanel Grid.RowSpan="2"
-                                                    Orientation="Horizontal"
-                                                    Spacing="10"
-                                                    HorizontalAlignment="Right"
-                                                    VerticalAlignment="Top"
-                                                    Margin="0,-4,0,0">
-                                            <Button Width="30"
-                                                    Height="30"
-                                                    Padding="0"
-                                                    CornerRadius="15"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    Command="{Binding ApplyReadAccessCommand}"
-                                                    IsVisible="{Binding HasReadAccessChanges}"
-                                                    ToolTip.Tip="Apply changes">
-                                                <Path Width="16" Height="16"
-                                                      Stretch="Uniform"
-                                                      Stroke="#43D590"
-                                                      StrokeThickness="2"
-                                                      StrokeJoin="Round"
-                                                      StrokeLineCap="Round"
-                                                      Data="M2,10 L7,15 L16,4" />
-                                                <Button.Resources>
-                                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="rgba(67, 213, 144, 0.1)" />
-                                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="rgba(67, 213, 144, 0.2)" />
-                                                </Button.Resources>
-                                            </Button>
-                                            <Button Width="30"
-                                                    Height="30"
-                                                    Padding="0"
-                                                    CornerRadius="15"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    Command="{Binding CancelReadAccessCommand}"
-                                                    IsVisible="{Binding HasReadAccessChanges}"
-                                                    ToolTip.Tip="Cancel changes">
-                                                <Path Width="12" Height="12"
-                                                      Stretch="Uniform"
-                                                      Stroke="#EF4444"
-                                                      StrokeThickness="2"
-                                                      StrokeJoin="Round"
-                                                      StrokeLineCap="Round"
-                                                      Data="M2,2 L12,12 M12,2 L2,12" />
-                                                <Button.Resources>
-                                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="rgba(239, 68, 68, 0.1)" />
-                                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="rgba(239, 68, 68, 0.2)" />
-                                                </Button.Resources>
-                                            </Button>
-                                        </StackPanel>
+                                                   FontWeight="Bold"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Row="1"
+                                               Text="Choose which folders the AI can read."
+                                               FontSize="13.4"
+                                               Foreground="#A5CFE5"
+                                               Margin="0,10,0,0" />
+                                    <!-- Floating Apply/Cancel buttons -->
+                                    <StackPanel Grid.RowSpan="2"
+                                                Orientation="Horizontal"
+                                                Spacing="10"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Top"
+                                                Margin="0,-4,0,0">
+                                        <Button Width="30"
+                                                Height="30"
+                                                Padding="0"
+                                                CornerRadius="15"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Command="{Binding ApplyReadAccessCommand}"
+                                                IsVisible="{Binding HasReadAccessChanges}"
+                                                ToolTip.Tip="Apply changes">
+                                            <Path Width="16"
+                                                  Height="16"
+                                                  Stretch="Uniform"
+                                                  Stroke="#43D590"
+                                                  StrokeThickness="2"
+                                                  StrokeJoin="Round"
+                                                  StrokeLineCap="Round"
+                                                  Data="M2,10 L7,15 L16,4" />
+                                            <Button.Resources>
+                                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                                 Color="rgba(67, 213, 144, 0.1)" />
+                                                <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                                 Color="rgba(67, 213, 144, 0.2)" />
+                                            </Button.Resources>
+                                        </Button>
+                                        <Button Width="30"
+                                                Height="30"
+                                                Padding="0"
+                                                CornerRadius="15"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Command="{Binding CancelReadAccessCommand}"
+                                                IsVisible="{Binding HasReadAccessChanges}"
+                                                ToolTip.Tip="Cancel changes">
+                                            <Path Width="12"
+                                                  Height="12"
+                                                  Stretch="Uniform"
+                                                  Stroke="#EF4444"
+                                                  StrokeThickness="2"
+                                                  StrokeJoin="Round"
+                                                  StrokeLineCap="Round"
+                                                  Data="M2,2 L12,12 M12,2 L2,12" />
+                                            <Button.Resources>
+                                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                                 Color="rgba(239, 68, 68, 0.1)" />
+                                                <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                                 Color="rgba(239, 68, 68, 0.2)" />
+                                            </Button.Resources>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid RowDefinitions="Auto,Auto,*">
+                                    <!-- Row 0: No read access option -->
+                                    <RadioButton Grid.Row="0"
+                                                 GroupName="ReadAccess"
+                                                 IsChecked="{Binding NoReadAccess}"
+                                                 Content="No, don't let the AI read any files." />
+                                    <!-- Row 1: Read access option -->
+                                    <Grid Grid.Row="1"
+                                          ColumnDefinitions="*,Auto"
+                                          Margin="0,0,0,0">
+                                        <RadioButton Grid.Column="0"
+                                                     GroupName="ReadAccess"
+                                                     IsChecked="{Binding AllowReadAccess}"
+                                                     Content="Yes, let the AI read files in the folders I choose." />
+                                        <Button Grid.Column="1"
+                                                Content="{Binding ChooseFoldersButtonText}"
+                                                Padding="12,8"
+                                                Margin="12,0,0,0"
+                                                CornerRadius="5"
+                                                BorderThickness="0"
+                                                Command="{Binding ChooseFoldersCommand}"
+                                                Classes.cancel="{Binding IsTreeStructureRunning}"
+                                                IsVisible="{Binding ShowChooseFoldersInline}">
+                                            <Button.Styles>
+                                                <!-- Default style for "Choose folders" (blue, stays blue on hover) -->
+                                                <Style Selector="Button">
+                                                    <Setter Property="Background"
+                                                            Value="rgba(59, 130, 246, 1)" />
+                                                    <Setter Property="Foreground"
+                                                            Value="White" />
+                                                </Style>
+                                                <Style Selector="Button:pointerover">
+                                                    <Setter Property="Background"
+                                                            Value="rgba(59, 130, 246, 1)" />
+                                                </Style>
+                                                <Style Selector="Button:pressed">
+                                                    <Setter Property="Background"
+                                                            Value="rgba(59, 130, 246, 1)" />
+                                                </Style>
+                                                <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                    <Setter Property="Background"
+                                                            Value="rgba(59, 130, 246, 1)" />
+                                                </Style>
+                                                <Style Selector="Button:pressed /template/ ContentPresenter">
+                                                    <Setter Property="Background"
+                                                            Value="rgba(59, 130, 246, 1)" />
+                                                </Style>
+                                                <!-- Cancel style (blue tone for cancel state) -->
+                                                <Style Selector="Button.cancel">
+                                                    <Setter Property="Background"
+                                                            Value="rgba(37, 99, 235, 1)" />
+                                                    <Setter Property="Foreground"
+                                                            Value="White" />
+                                                </Style>
+                                                <Style Selector="Button.cancel:pointerover">
+                                                    <Setter Property="Background"
+                                                            Value="rgba(37, 99, 235, 1)" />
+                                                </Style>
+                                                <Style Selector="Button.cancel:pressed">
+                                                    <Setter Property="Background"
+                                                            Value="rgba(37, 99, 235, 1)" />
+                                                </Style>
+                                                <Style Selector="Button.cancel:pointerover /template/ ContentPresenter">
+                                                    <Setter Property="Background"
+                                                            Value="rgba(37, 99, 235, 1)" />
+                                                </Style>
+                                                <Style Selector="Button.cancel:pressed /template/ ContentPresenter">
+                                                    <Setter Property="Background"
+                                                            Value="rgba(37, 99, 235, 1)" />
+                                                </Style>
+                                            </Button.Styles>
+                                            <Button.Resources>
+                                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                                 Color="rgba(59, 130, 246, 1)" />
+                                                <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                                 Color="rgba(59, 130, 246, 1)" />
+                                                <SolidColorBrush x:Key="ButtonBorderBrushPointerOver"
+                                                                 Color="Transparent" />
+                                                <SolidColorBrush x:Key="ButtonBorderBrushPressed"
+                                                                 Color="Transparent" />
+                                            </Button.Resources>
+                                        </Button>
                                     </Grid>
-
-                                    <Grid RowDefinitions="Auto,Auto,*">
-                                        <!-- Row 0: No read access option -->
-                                        <RadioButton Grid.Row="0" GroupName="ReadAccess" IsChecked="{Binding NoReadAccess}" Content="No, don't let the AI read any files." />
-
-                                        <!-- Row 1: Read access option -->
-                                        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,0,0,0">
-                                            <RadioButton Grid.Column="0"
-                                                         GroupName="ReadAccess"
-                                                         IsChecked="{Binding AllowReadAccess}"
-                                                         Content="Yes, let the AI read files in the folders I choose." />
-                                            <Button Grid.Column="1"
-                                                    Content="{Binding ChooseFoldersButtonText}"
+                                    <!-- Row 2: Folder list with fixed action bar -->
+                                    <Grid Grid.Row="2"
+                                          Margin="0,10,0,0"
+                                          RowDefinitions="*,Auto">
+                                        <!-- Folders list -->
+                                        <ScrollViewer Grid.Row="0"
+                                                      Margin="0,0,0,10"
+                                                      VerticalScrollBarVisibility="Auto"
+                                                      HorizontalScrollBarVisibility="Disabled">
+                                            <ItemsControl ItemsSource="{Binding ReadAccessFolders}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal"
+                                                                    Margin="0,5">
+                                                            <TextBlock Text="{Binding Path}"
+                                                                       VerticalAlignment="Center"
+                                                                       FontSize="13.4"
+                                                                       Foreground="#A5CFE5" />
+                                                            <!-- Spinner icon (shown during loading) -->
+                                                            <Grid Width="20"
+                                                                  Height="20"
+                                                                  Margin="5,0,0,0"
+                                                                  IsVisible="{Binding IsLoading}">
+                                                                <svg:Svg Path="/Assets/spinner-2.svg"
+                                                                         Width="16"
+                                                                         Height="16"
+                                                                         VerticalAlignment="Center"
+                                                                         HorizontalAlignment="Center">
+                                                                    <svg:Svg.Styles>
+                                                                        <Style Selector="svg|Svg">
+                                                                            <Style.Animations>
+                                                                                <Animation Duration="0:0:1"
+                                                                                           IterationCount="Infinite">
+                                                                                    <KeyFrame Cue="0%">
+                                                                                        <Setter Property="RotateTransform.Angle"
+                                                                                                Value="0" />
+                                                                                    </KeyFrame>
+                                                                                    <KeyFrame Cue="100%">
+                                                                                        <Setter Property="RotateTransform.Angle"
+                                                                                                Value="-360" />
+                                                                                    </KeyFrame>
+                                                                                </Animation>
+                                                                            </Style.Animations>
+                                                                        </Style>
+                                                                    </svg:Svg.Styles>
+                                                                    <svg:Svg.RenderTransform>
+                                                                        <RotateTransform />
+                                                                    </svg:Svg.RenderTransform>
+                                                                </svg:Svg>
+                                                            </Grid>
+                                                            <!-- Static spinner shown while paused -->
+                                                            <Grid Width="20"
+                                                                  Height="20"
+                                                                  Margin="5,0,0,0"
+                                                                  IsVisible="{Binding $parent[UserControl].DataContext.IsTreeStructurePaused}">
+                                                                <svg:Svg Path="/Assets/spinner-2.svg"
+                                                                         Width="16"
+                                                                         Height="16"
+                                                                         VerticalAlignment="Center"
+                                                                         HorizontalAlignment="Center" />
+                                                            </Grid>
+                                                            <!-- X button (shown after loading) -->
+                                                            <Button Width="20"
+                                                                    Height="20"
+                                                                    Padding="0"
+                                                                    Margin="5,0,0,0"
+                                                                    Background="Transparent"
+                                                                    BorderBrush="Transparent"
+                                                                    CornerRadius="10"
+                                                                    Command="{Binding $parent[UserControl].DataContext.RemoveFolderCommand}"
+                                                                    CommandParameter="{Binding}"
+                                                                    IsVisible="{Binding !IsLoading}">
+                                                                <Path Width="10"
+                                                                      Height="10"
+                                                                      Stretch="Uniform"
+                                                                      Stroke="#EF4444"
+                                                                      StrokeThickness="2"
+                                                                      StrokeLineCap="Round"
+                                                                      Data="M2,2 L10,10 M10,2 L2,10" />
+                                                                <Button.Resources>
+                                                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                                                     Color="rgba(239, 68, 68, 0.2)" />
+                                                                    <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                                                     Color="rgba(239, 68, 68, 0.3)" />
+                                                                </Button.Resources>
+                                                            </Button>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                        <!-- Fixed button area BELOW the folder paths -->
+                                        <StackPanel Grid.Row="1"
+                                                    Orientation="Horizontal"
+                                                    HorizontalAlignment="Right"
+                                                    Spacing="8">
+                                            <StackPanel Orientation="Horizontal"
+                                                        Spacing="8"
+                                                        VerticalAlignment="Center"
+                                                        IsVisible="{Binding ShowPauseResumeButton}">
+                                                <Button Content="Pause"
+                                                        Padding="12,8"
+                                                        CornerRadius="5"
+                                                        Background="rgba(59, 130, 246, 1)"
+                                                        Foreground="White"
+                                                        BorderThickness="0"
+                                                        Command="{Binding PauseResumeTreeCommand}"
+                                                        IsEnabled="{Binding CanPauseResume}"
+                                                        IsVisible="{Binding ShowPauseButton}">
+                                                    <Button.Styles>
+                                                        <Style Selector="Button:pointerover">
+                                                            <Setter Property="Background"
+                                                                    Value="rgba(59, 130, 246, 1)" />
+                                                        </Style>
+                                                        <Style Selector="Button:pressed">
+                                                            <Setter Property="Background"
+                                                                    Value="rgba(59, 130, 246, 1)" />
+                                                        </Style>
+                                                        <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                            <Setter Property="Background"
+                                                                    Value="rgba(59, 130, 246, 1)" />
+                                                        </Style>
+                                                        <Style Selector="Button:pressed /template/ ContentPresenter">
+                                                            <Setter Property="Background"
+                                                                    Value="rgba(59, 130, 246, 1)" />
+                                                        </Style>
+                                                    </Button.Styles>
+                                                    <Button.Resources>
+                                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                                         Color="rgba(59, 130, 246, 1)" />
+                                                        <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                                         Color="rgba(59, 130, 246, 1)" />
+                                                        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver"
+                                                                         Color="Transparent" />
+                                                        <SolidColorBrush x:Key="ButtonBorderBrushPressed"
+                                                                         Color="Transparent" />
+                                                    </Button.Resources>
+                                                </Button>
+                                                <Button Content="Continue"
+                                                        Padding="12,8"
+                                                        CornerRadius="5"
+                                                        Background="rgba(59, 130, 246, 1)"
+                                                        Foreground="White"
+                                                        BorderThickness="0"
+                                                        Command="{Binding ApplyReadAccessCommand}"
+                                                        IsVisible="{Binding ShowContinueButton}"
+                                                        IsEnabled="{Binding CanResumeTree}">
+                                                    <Button.Styles>
+                                                        <Style Selector="Button:pointerover">
+                                                            <Setter Property="Background"
+                                                                    Value="rgba(59, 130, 246, 1)" />
+                                                        </Style>
+                                                        <Style Selector="Button:pressed">
+                                                            <Setter Property="Background"
+                                                                    Value="rgba(59, 130, 246, 1)" />
+                                                        </Style>
+                                                        <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                            <Setter Property="Background"
+                                                                    Value="rgba(59, 130, 246, 1)" />
+                                                        </Style>
+                                                        <Style Selector="Button:pressed /template/ ContentPresenter">
+                                                            <Setter Property="Background"
+                                                                    Value="rgba(59, 130, 246, 1)" />
+                                                        </Style>
+                                                    </Button.Styles>
+                                                    <Button.Resources>
+                                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                                         Color="rgba(59, 130, 246, 1)" />
+                                                        <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                                         Color="rgba(59, 130, 246, 1)" />
+                                                        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver"
+                                                                         Color="Transparent" />
+                                                        <SolidColorBrush x:Key="ButtonBorderBrushPressed"
+                                                                         Color="Transparent" />
+                                                    </Button.Resources>
+                                                </Button>
+                                            </StackPanel>
+                                            <Button Content="Refresh"
                                                     Padding="12,8"
-                                                    Margin="12,0,0,0"
+                                                    CornerRadius="5"
+                                                    BorderThickness="1"
+                                                    Background="Transparent"
+                                                    BorderBrush="rgba(59, 130, 246, 1)"
+                                                    Foreground="White"
+                                                    Command="{Binding RefreshFoldersCommand}"
+                                                    IsVisible="{Binding ShowChooseFoldersBelow}">
+                                                <Button.Styles>
+                                                    <Style Selector="Button:pointerover">
+                                                        <Setter Property="Background"
+                                                                Value="rgba(59, 130, 246, 0.08)" />
+                                                    </Style>
+                                                    <Style Selector="Button:pressed">
+                                                        <Setter Property="Background"
+                                                                Value="rgba(59, 130, 246, 0.15)" />
+                                                    </Style>
+                                                    <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                        <Setter Property="Background"
+                                                                Value="Transparent" />
+                                                    </Style>
+                                                    <Style Selector="Button:pressed /template/ ContentPresenter">
+                                                        <Setter Property="Background"
+                                                                Value="Transparent" />
+                                                    </Style>
+                                                </Button.Styles>
+                                                <Button.Resources>
+                                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                                     Color="rgba(59, 130, 246, 0.08)" />
+                                                    <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                                     Color="rgba(59, 130, 246, 0.15)" />
+                                                    <SolidColorBrush x:Key="ButtonBorderBrushPointerOver"
+                                                                     Color="rgba(59, 130, 246, 1)" />
+                                                    <SolidColorBrush x:Key="ButtonBorderBrushPressed"
+                                                                     Color="rgba(59, 130, 246, 1)" />
+                                                </Button.Resources>
+                                            </Button>
+                                            <!-- Choose folders / Cancel button (merged) -->
+                                            <Button Content="{Binding ChooseFoldersButtonText}"
+                                                    Padding="12,8"
                                                     CornerRadius="5"
                                                     BorderThickness="0"
                                                     Command="{Binding ChooseFoldersCommand}"
                                                     Classes.cancel="{Binding IsTreeStructureRunning}"
-                                                    IsVisible="{Binding ShowChooseFoldersInline}">
+                                                    IsVisible="{Binding ShowChooseFoldersBelow}">
                                                 <Button.Styles>
                                                     <!-- Default style for "Choose folders" (blue, stays blue on hover) -->
                                                     <Style Selector="Button">
-                                                        <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
-                                                        <Setter Property="Foreground" Value="White" />
+                                                        <Setter Property="Background"
+                                                                Value="rgba(59, 130, 246, 1)" />
+                                                        <Setter Property="Foreground"
+                                                                Value="White" />
                                                     </Style>
                                                     <Style Selector="Button:pointerover">
-                                                        <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
+                                                        <Setter Property="Background"
+                                                                Value="rgba(59, 130, 246, 1)" />
                                                     </Style>
                                                     <Style Selector="Button:pressed">
-                                                        <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
+                                                        <Setter Property="Background"
+                                                                Value="rgba(59, 130, 246, 1)" />
                                                     </Style>
                                                     <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                                        <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
+                                                        <Setter Property="Background"
+                                                                Value="rgba(59, 130, 246, 1)" />
                                                     </Style>
                                                     <Style Selector="Button:pressed /template/ ContentPresenter">
-                                                        <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
+                                                        <Setter Property="Background"
+                                                                Value="rgba(59, 130, 246, 1)" />
                                                     </Style>
-
                                                     <!-- Cancel style (blue tone for cancel state) -->
                                                     <Style Selector="Button.cancel">
-                                                        <Setter Property="Background" Value="rgba(37, 99, 235, 1)" />
-                                                        <Setter Property="Foreground" Value="White" />
+                                                        <Setter Property="Background"
+                                                                Value="rgba(37, 99, 235, 1)" />
+                                                        <Setter Property="Foreground"
+                                                                Value="White" />
                                                     </Style>
                                                     <Style Selector="Button.cancel:pointerover">
-                                                        <Setter Property="Background" Value="rgba(37, 99, 235, 1)" />
+                                                        <Setter Property="Background"
+                                                                Value="rgba(37, 99, 235, 1)" />
                                                     </Style>
                                                     <Style Selector="Button.cancel:pressed">
-                                                        <Setter Property="Background" Value="rgba(37, 99, 235, 1)" />
+                                                        <Setter Property="Background"
+                                                                Value="rgba(37, 99, 235, 1)" />
                                                     </Style>
                                                     <Style Selector="Button.cancel:pointerover /template/ ContentPresenter">
-                                                        <Setter Property="Background" Value="rgba(37, 99, 235, 1)" />
+                                                        <Setter Property="Background"
+                                                                Value="rgba(37, 99, 235, 1)" />
                                                     </Style>
                                                     <Style Selector="Button.cancel:pressed /template/ ContentPresenter">
-                                                        <Setter Property="Background" Value="rgba(37, 99, 235, 1)" />
+                                                        <Setter Property="Background"
+                                                                Value="rgba(37, 99, 235, 1)" />
                                                     </Style>
                                                 </Button.Styles>
                                                 <Button.Resources>
-                                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="rgba(59, 130, 246, 1)" />
-                                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="rgba(59, 130, 246, 1)" />
-                                                    <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
-                                                    <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
+                                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                                     Color="rgba(59, 130, 246, 1)" />
+                                                    <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                                     Color="rgba(59, 130, 246, 1)" />
+                                                    <SolidColorBrush x:Key="ButtonBorderBrushPointerOver"
+                                                                     Color="Transparent" />
+                                                    <SolidColorBrush x:Key="ButtonBorderBrushPressed"
+                                                                     Color="Transparent" />
                                                 </Button.Resources>
                                             </Button>
-                                        </Grid>
-
-                                        <!-- Row 2: Folder list with fixed action bar -->
-                                        <Grid Grid.Row="2"
-                                              Margin="0,10,0,0"
-                                              RowDefinitions="*,Auto">
-                                            <!-- Folders list -->
-                                            <ScrollViewer Grid.Row="0"
-                                                          Margin="0,0,0,10"
-                                                          VerticalScrollBarVisibility="Auto"
-                                                          HorizontalScrollBarVisibility="Disabled">
-                                                <ItemsControl ItemsSource="{Binding ReadAccessFolders}">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <StackPanel Orientation="Horizontal" Margin="0,5">
-                                                                <TextBlock Text="{Binding Path}"
-                                                                          VerticalAlignment="Center"
-                                                                          FontSize="13.4"
-                                                                          Foreground="#A5CFE5" />
-
-                                                                <!-- Spinner icon (shown during loading) -->
-                                                                <Grid Width="20"
-                                                                      Height="20"
-                                                                      Margin="5,0,0,0"
-                                                                      IsVisible="{Binding IsLoading}">
-                                                                    <svg:Svg Path="/Assets/spinner-2.svg"
-                                                                            Width="16"
-                                                                            Height="16"
-                                                                            VerticalAlignment="Center"
-                                                                            HorizontalAlignment="Center">
-                                                                        <svg:Svg.Styles>
-                                                                            <Style Selector="svg|Svg">
-                                                                                <Style.Animations>
-                                                                                    <Animation Duration="0:0:1" IterationCount="Infinite">
-                                                                                        <KeyFrame Cue="0%">
-                                                                                            <Setter Property="RotateTransform.Angle" Value="0"/>
-                                                                                        </KeyFrame>
-                                                                                        <KeyFrame Cue="100%">
-                                                                                            <Setter Property="RotateTransform.Angle" Value="-360"/>
-                                                                                        </KeyFrame>
-                                                                                    </Animation>
-                                                                                </Style.Animations>
-                                                                            </Style>
-                                                                        </svg:Svg.Styles>
-                                                                        <svg:Svg.RenderTransform>
-                                                                            <RotateTransform />
-                                                                        </svg:Svg.RenderTransform>
-                                                                    </svg:Svg>
-                                                                </Grid>
-
-                                                                <!-- Static spinner shown while paused -->
-                                                                <Grid Width="20"
-                                                                      Height="20"
-                                                                      Margin="5,0,0,0"
-                                                                      IsVisible="{Binding $parent[UserControl].DataContext.IsTreeStructurePaused}">
-                                                                    <svg:Svg Path="/Assets/spinner-2.svg"
-                                                                            Width="16"
-                                                                            Height="16"
-                                                                            VerticalAlignment="Center"
-                                                                            HorizontalAlignment="Center" />
-                                                                </Grid>
-
-                                                                <!-- X button (shown after loading) -->
-                                                                <Button Width="20"
-                                                                        Height="20"
-                                                                        Padding="0"
-                                                                        Margin="5,0,0,0"
-                                                                        Background="Transparent"
-                                                                        BorderBrush="Transparent"
-                                                                        CornerRadius="10"
-                                                                        Command="{Binding $parent[UserControl].DataContext.RemoveFolderCommand}"
-                                                                        CommandParameter="{Binding}"
-                                                                        IsVisible="{Binding !IsLoading}">
-                                                                    <Path Width="10"
-                                                                          Height="10"
-                                                                          Stretch="Uniform"
-                                                                          Stroke="#EF4444"
-                                                                          StrokeThickness="2"
-                                                                          StrokeLineCap="Round"
-                                                                          Data="M2,2 L10,10 M10,2 L2,10" />
-                                                                    <Button.Resources>
-                                                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="rgba(239, 68, 68, 0.2)" />
-                                                                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="rgba(239, 68, 68, 0.3)" />
-                                                                    </Button.Resources>
-                                                                </Button>
-                                                            </StackPanel>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </ScrollViewer>
-
-                                            <!-- Fixed button area BELOW the folder paths -->
-                                            <StackPanel Grid.Row="1"
-                                                        Orientation="Horizontal"
-                                                        HorizontalAlignment="Right"
-                                                        Spacing="8">
-                                                <StackPanel Orientation="Horizontal"
-                                                            Spacing="8"
-                                                            VerticalAlignment="Center"
-                                                            IsVisible="{Binding ShowPauseResumeButton}">
-                                                    <Button Content="Pause"
-                                                            Padding="12,8"
-                                                            CornerRadius="5"
-                                                            Background="rgba(59, 130, 246, 1)"
-                                                            Foreground="White"
-                                                            BorderThickness="0"
-                                                            Command="{Binding PauseResumeTreeCommand}"
-                                                            IsEnabled="{Binding CanPauseResume}"
-                                                            IsVisible="{Binding ShowPauseButton}">
-                                                        <Button.Styles>
-                                                            <Style Selector="Button:pointerover">
-                                                                <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
-                                                            </Style>
-                                                            <Style Selector="Button:pressed">
-                                                                <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
-                                                            </Style>
-                                                            <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                                                <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
-                                                            </Style>
-                                                            <Style Selector="Button:pressed /template/ ContentPresenter">
-                                                                <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
-                                                            </Style>
-                                                        </Button.Styles>
-                                                        <Button.Resources>
-                                                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="rgba(59, 130, 246, 1)" />
-                                                            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="rgba(59, 130, 246, 1)" />
-                                                            <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
-                                                            <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
-                                                        </Button.Resources>
-                                                    </Button>
-                                                    <Button Content="Continue"
-                                                            Padding="12,8"
-                                                            CornerRadius="5"
-                                                            Background="rgba(59, 130, 246, 1)"
-                                                            Foreground="White"
-                                                            BorderThickness="0"
-                                                            Command="{Binding ApplyReadAccessCommand}"
-                                                            IsVisible="{Binding ShowContinueButton}"
-                                                            IsEnabled="{Binding CanResumeTree}">
-                                                        <Button.Styles>
-                                                            <Style Selector="Button:pointerover">
-                                                                <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
-                                                            </Style>
-                                                            <Style Selector="Button:pressed">
-                                                                <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
-                                                            </Style>
-                                                            <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                                                <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
-                                                            </Style>
-                                                            <Style Selector="Button:pressed /template/ ContentPresenter">
-                                                                <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
-                                                            </Style>
-                                                        </Button.Styles>
-                                                        <Button.Resources>
-                                                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="rgba(59, 130, 246, 1)" />
-                                                            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="rgba(59, 130, 246, 1)" />
-                                                            <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
-                                                            <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
-                                                        </Button.Resources>
-                                                    </Button>
-                                                </StackPanel>
-
-                                                <Button Content="Refresh"
-                                                        Padding="12,8"
-                                                        CornerRadius="5"
-                                                        BorderThickness="1"
-                                                        Background="Transparent"
-                                                        BorderBrush="rgba(59, 130, 246, 1)"
-                                                        Foreground="White"
-                                                        Command="{Binding RefreshFoldersCommand}"
-                                                        IsVisible="{Binding ShowChooseFoldersBelow}">
-                                                    <Button.Styles>
-                                                        <Style Selector="Button:pointerover">
-                                                            <Setter Property="Background" Value="rgba(59, 130, 246, 0.08)" />
-                                                        </Style>
-                                                        <Style Selector="Button:pressed">
-                                                            <Setter Property="Background" Value="rgba(59, 130, 246, 0.15)" />
-                                                        </Style>
-                                                        <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                                            <Setter Property="Background" Value="Transparent" />
-                                                        </Style>
-                                                        <Style Selector="Button:pressed /template/ ContentPresenter">
-                                                            <Setter Property="Background" Value="Transparent" />
-                                                        </Style>
-                                                    </Button.Styles>
-                                                    <Button.Resources>
-                                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="rgba(59, 130, 246, 0.08)" />
-                                                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="rgba(59, 130, 246, 0.15)" />
-                                                        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="rgba(59, 130, 246, 1)" />
-                                                        <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="rgba(59, 130, 246, 1)" />
-                                                    </Button.Resources>
-                                                </Button>
-
-                                                <!-- Choose folders / Cancel button (merged) -->
-                                                <Button Content="{Binding ChooseFoldersButtonText}"
-                                                        Padding="12,8"
-                                                        CornerRadius="5"
-                                                        BorderThickness="0"
-                                                        Command="{Binding ChooseFoldersCommand}"
-                                                        Classes.cancel="{Binding IsTreeStructureRunning}"
-                                                        IsVisible="{Binding ShowChooseFoldersBelow}">
-                                                    <Button.Styles>
-                                                        <!-- Default style for "Choose folders" (blue, stays blue on hover) -->
-                                                        <Style Selector="Button">
-                                                            <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
-                                                            <Setter Property="Foreground" Value="White" />
-                                                        </Style>
-                                                        <Style Selector="Button:pointerover">
-                                                            <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
-                                                        </Style>
-                                                        <Style Selector="Button:pressed">
-                                                            <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
-                                                        </Style>
-                                                        <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                                            <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
-                                                        </Style>
-                                                        <Style Selector="Button:pressed /template/ ContentPresenter">
-                                                            <Setter Property="Background" Value="rgba(59, 130, 246, 1)" />
-                                                        </Style>
-
-                                                        <!-- Cancel style (blue tone for cancel state) -->
-                                                        <Style Selector="Button.cancel">
-                                                            <Setter Property="Background" Value="rgba(37, 99, 235, 1)" />
-                                                            <Setter Property="Foreground" Value="White" />
-                                                        </Style>
-                                                        <Style Selector="Button.cancel:pointerover">
-                                                            <Setter Property="Background" Value="rgba(37, 99, 235, 1)" />
-                                                        </Style>
-                                                        <Style Selector="Button.cancel:pressed">
-                                                            <Setter Property="Background" Value="rgba(37, 99, 235, 1)" />
-                                                        </Style>
-                                                        <Style Selector="Button.cancel:pointerover /template/ ContentPresenter">
-                                                            <Setter Property="Background" Value="rgba(37, 99, 235, 1)" />
-                                                        </Style>
-                                                        <Style Selector="Button.cancel:pressed /template/ ContentPresenter">
-                                                            <Setter Property="Background" Value="rgba(37, 99, 235, 1)" />
-                                                        </Style>
-                                                    </Button.Styles>
-                                                    <Button.Resources>
-                                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="rgba(59, 130, 246, 1)" />
-                                                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="rgba(59, 130, 246, 1)" />
-                                                        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
-                                                        <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
-                                                    </Button.Resources>
-                                                </Button>
-                                            </StackPanel>
-                                        </Grid>
+                                        </StackPanel>
                                     </Grid>
-                                </StackPanel>
-
-                                <!-- File access: Write Permission Section -->
-                                <!-- <StackPanel Spacing="15">
+                                </Grid>
+                            </StackPanel>
+                            <!-- File access: Write Permission Section -->
+                            <!-- <StackPanel Spacing="15">
                                     <Grid ColumnDefinitions="*,Auto,Auto">
                                         <StackPanel Grid.Column="0" Spacing="10">
                                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -817,235 +1003,302 @@
                                         </Grid>
                                     </StackPanel>
                                 </StackPanel> -->
-
-                                <!-- File access: Allowed File Types Section -->
-                                <StackPanel Spacing="15">
-                                    <Grid ColumnDefinitions="*,Auto,Auto">
-                                        <StackPanel Grid.Column="0" Spacing="10">
-                                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                                <TextBlock Text="Allowed file types" FontSize="13.4" FontWeight="SemiBold" />
-                                            </StackPanel>
-                                            <TextBlock Text="Select which extensions the AI can read or write." FontSize="13.4" Foreground="#A5CFE5" />
+                            <!-- File access: Allowed File Types Section -->
+                            <StackPanel Spacing="15">
+                                <Grid ColumnDefinitions="*,Auto,Auto">
+                                    <StackPanel Grid.Column="0"
+                                                Spacing="10">
+                                        <StackPanel Orientation="Horizontal"
+                                                    Spacing="10">
+                                            <TextBlock Text="Allowed file types"
+                                                       FontSize="13.4"
+                                                       FontWeight="SemiBold" />
                                         </StackPanel>
-                                        <!-- Check and X icons -->
-                                        <Button Grid.Column="1"
-                                                Width="30"
-                                                Height="30"
-                                                Padding="0"
-                                                Margin="10,0,5,0"
-                                                CornerRadius="15"
-                                                Background="Transparent"
-                                                BorderThickness="0"
-                                                Command="{Binding ApplyFileTypesCommand}"
-                                                IsVisible="{Binding HasFileTypesChanges}"
-                                                ToolTip.Tip="Apply changes">
-                                            <Path Width="16" Height="16"
-                                                  Stretch="Uniform"
-                                                  Stroke="#43D590"
-                                                  StrokeThickness="2"
-                                                  StrokeJoin="Round"
-                                                  StrokeLineCap="Round"
-                                                  Data="M2,10 L7,15 L16,4" />
-                                            <Button.Resources>
-                                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="rgba(67, 213, 144, 0.1)" />
-                                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="rgba(67, 213, 144, 0.2)" />
-                                            </Button.Resources>
-                                        </Button>
-                                        <Button Grid.Column="2"
-                                                Width="30"
-                                                Height="30"
-                                                Padding="0"
-                                                CornerRadius="15"
-                                                Background="Transparent"
-                                                BorderThickness="0"
-                                                Command="{Binding CancelFileTypesCommand}"
-                                                IsVisible="{Binding HasFileTypesChanges}"
-                                                ToolTip.Tip="Cancel changes">
-                                            <Path Width="12" Height="12"
-                                                  Stretch="Uniform"
-                                                  Stroke="#EF4444"
-                                                  StrokeThickness="2"
-                                                  StrokeJoin="Round"
-                                                  StrokeLineCap="Round"
-                                                  Data="M2,2 L12,12 M12,2 L2,12" />
-                                            <Button.Resources>
-                                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="rgba(239, 68, 68, 0.1)" />
-                                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="rgba(239, 68, 68, 0.2)" />
-                                            </Button.Resources>
-                                        </Button>
-                                    </Grid>
-
-                                    <WrapPanel>
-                                        <CheckBox IsChecked="{Binding AllowPdfFiles}" Content=".pdf" Margin="0,0,20,10" />
-                                        <CheckBox IsChecked="{Binding AllowTxtFiles}" Content=".txt" Margin="0,0,20,10" />
-                                        <CheckBox IsChecked="{Binding AllowDocxFiles}" Content=".docx" Margin="0,0,20,10" />
-                                        <CheckBox IsChecked="{Binding AllowCsvFiles}" Content=".csv" Margin="0,0,20,10" />
-                                        <CheckBox IsChecked="{Binding AllowMdFiles}" Content=".md" Margin="0,0,20,10" />
-                                        <CheckBox IsChecked="{Binding AllowXlsFiles}" Content=".xlsx" Margin="0,0,20,10" />
-                                    </WrapPanel>
-                                </StackPanel>
-
-                                <!-- Tree Structure Schedule Section -->
-                                <StackPanel Spacing="15">
-                                    <StackPanel Spacing="8">
-                                        <TextBlock Text="File Update: Schedule" FontSize="13.4" FontWeight="SemiBold" />
-                                        <TextBlock Text="Select the frequency for automatic sync when the files change. " FontSize="13.4" Foreground="#A5CFE5" />
+                                        <TextBlock Text="Select which extensions the AI can read or write."
+                                                   FontSize="13.4"
+                                                   Foreground="#A5CFE5" />
                                     </StackPanel>
-
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock Grid.Column="0" Text="Enable scheduled updates" VerticalAlignment="Center" />
-                                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding TreeStructureScheduleEnabled}" IsEnabled="{Binding CanEnableSchedule}" ToolTip.Tip="{Binding ScheduleDisabledReason}" Margin="10,0">
-                                            <ToggleSwitch.Resources>
-                                                <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#00CC99" />
-                                                <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#00CC99" />
-                                                <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#00CC99" />
-                                                <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#00CC99" />
-                                                <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#00CC99" />
-                                                <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#00CC99" />
-                                            </ToggleSwitch.Resources>
-                                        </ToggleSwitch>
-                                    </Grid>
-
-                                    <StackPanel Spacing="8">
-                                        <TextBlock Text="Update Frequency" FontSize="13.4" FontWeight="SemiBold" />
-                                        <ComboBox ItemsSource="{Binding ScheduleOptions}"
-                                                  SelectedItem="{Binding SelectedScheduleOption}"
-                                                  IsEnabled="{Binding TreeStructureScheduleEnabled}"
-                                                  HorizontalAlignment="Stretch">
-                                            <ComboBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding DisplayName}" />
-                                                </DataTemplate>
-                                            </ComboBox.ItemTemplate>
-                                        </ComboBox>
-                                        <!-- <TextBlock Text="{Binding TreeStructureSchedule, StringFormat='Cron: {0}'}" FontSize="12" Foreground="#A5CFE5" /> -->
-                                    </StackPanel>
-                                </StackPanel>
-
-                                <!-- Action Buttons -->
-                                <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" IsVisible="{Binding HasScheduleChanges}">
-                                    <TextBlock Text="Changes saved!"
-                                            Foreground="#00CC99"
-                                            VerticalAlignment="Center"
-                                            Margin="0,0,10,0"
-                                            IsVisible="{Binding ShowScheduleSuccess}" />
-
-                                    <Button Content="Cancel"
-                                            Command="{Binding CancelScheduleCommand}"
+                                    <!-- Check and X icons -->
+                                    <Button Grid.Column="1"
+                                            Width="30"
+                                            Height="30"
+                                            Padding="0"
+                                            Margin="10,0,5,0"
+                                            CornerRadius="15"
                                             Background="Transparent"
-                                            BorderBrush="rgba(255,255,255,0.1)"
-                                            BorderThickness="1"
-                                            CornerRadius="6"
-                                            Padding="16,8" />
-
-                                    <Button Content="Apply Changes"
-                                            Command="{Binding ApplyScheduleCommand}"
-                                            Background="#3B82F6"
-                                            CornerRadius="6"
-                                            Padding="16,8"
-                                            IsEnabled="{Binding !IsSaving}">
+                                            BorderThickness="0"
+                                            Command="{Binding ApplyFileTypesCommand}"
+                                            IsVisible="{Binding HasFileTypesChanges}"
+                                            ToolTip.Tip="Apply changes">
+                                        <Path Width="16"
+                                              Height="16"
+                                              Stretch="Uniform"
+                                              Stroke="#43D590"
+                                              StrokeThickness="2"
+                                              StrokeJoin="Round"
+                                              StrokeLineCap="Round"
+                                              Data="M2,10 L7,15 L16,4" />
                                         <Button.Resources>
-                                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#2563EB" />
-                                            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#1D4ED8" />
+                                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                             Color="rgba(67, 213, 144, 0.1)" />
+                                            <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                             Color="rgba(67, 213, 144, 0.2)" />
                                         </Button.Resources>
                                     </Button>
+                                    <Button Grid.Column="2"
+                                            Width="30"
+                                            Height="30"
+                                            Padding="0"
+                                            CornerRadius="15"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Command="{Binding CancelFileTypesCommand}"
+                                            IsVisible="{Binding HasFileTypesChanges}"
+                                            ToolTip.Tip="Cancel changes">
+                                        <Path Width="12"
+                                              Height="12"
+                                              Stretch="Uniform"
+                                              Stroke="#EF4444"
+                                              StrokeThickness="2"
+                                              StrokeJoin="Round"
+                                              StrokeLineCap="Round"
+                                              Data="M2,2 L12,12 M12,2 L2,12" />
+                                        <Button.Resources>
+                                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                             Color="rgba(239, 68, 68, 0.1)" />
+                                            <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                             Color="rgba(239, 68, 68, 0.2)" />
+                                        </Button.Resources>
+                                    </Button>
+                                </Grid>
+                                <WrapPanel>
+                                    <CheckBox IsChecked="{Binding AllowPdfFiles}"
+                                              Content=".pdf"
+                                              Margin="0,0,20,10" />
+                                    <CheckBox IsChecked="{Binding AllowTxtFiles}"
+                                              Content=".txt"
+                                              Margin="0,0,20,10" />
+                                    <CheckBox IsChecked="{Binding AllowDocxFiles}"
+                                              Content=".docx"
+                                              Margin="0,0,20,10" />
+                                    <CheckBox IsChecked="{Binding AllowCsvFiles}"
+                                              Content=".csv"
+                                              Margin="0,0,20,10" />
+                                    <CheckBox IsChecked="{Binding AllowMdFiles}"
+                                              Content=".md"
+                                              Margin="0,0,20,10" />
+                                    <CheckBox IsChecked="{Binding AllowXlsFiles}"
+                                              Content=".xlsx"
+                                              Margin="0,0,20,10" />
+                                </WrapPanel>
+                            </StackPanel>
+                            <!-- Tree Structure Schedule Section -->
+                            <StackPanel Spacing="15">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="File Update: Schedule"
+                                               FontSize="13.4"
+                                               FontWeight="SemiBold" />
+                                    <TextBlock Text="Select the frequency for automatic sync when the files change. "
+                                               FontSize="13.4"
+                                               Foreground="#A5CFE5" />
+                                </StackPanel>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0"
+                                               Text="Enable scheduled updates"
+                                               VerticalAlignment="Center" />
+                                    <ToggleSwitch Grid.Column="1"
+                                                  IsChecked="{Binding TreeStructureScheduleEnabled}"
+                                                  IsEnabled="{Binding CanEnableSchedule}"
+                                                  ToolTip.Tip="{Binding ScheduleDisabledReason}"
+                                                  Margin="10,0">
+                                        <ToggleSwitch.Resources>
+                                            <SolidColorBrush x:Key="ToggleSwitchFillOn"
+                                                             Color="#00CC99" />
+                                            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver"
+                                                             Color="#00CC99" />
+                                            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed"
+                                                             Color="#00CC99" />
+                                            <SolidColorBrush x:Key="ToggleSwitchStrokeOn"
+                                                             Color="#00CC99" />
+                                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver"
+                                                             Color="#00CC99" />
+                                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed"
+                                                             Color="#00CC99" />
+                                        </ToggleSwitch.Resources>
+                                    </ToggleSwitch>
+                                </Grid>
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Update Frequency"
+                                               FontSize="13.4"
+                                               FontWeight="SemiBold" />
+                                    <ComboBox ItemsSource="{Binding ScheduleOptions}"
+                                              SelectedItem="{Binding SelectedScheduleOption}"
+                                              IsEnabled="{Binding TreeStructureScheduleEnabled}"
+                                              HorizontalAlignment="Stretch">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding DisplayName}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <!-- <TextBlock Text="{Binding TreeStructureSchedule, StringFormat='Cron: {0}'}" FontSize="12" Foreground="#A5CFE5" /> -->
                                 </StackPanel>
                             </StackPanel>
-                        </Border>
-                    </StackPanel>
-
-
-
-                    <!-- Support Settings -->
-                    <StackPanel IsVisible="{Binding IsSupportSelected}" Spacing="10">
-                        <Border Background="rgba(19, 19, 19, 0.4)"
-                                BorderBrush="rgba(255,255,255,0.05)"
-                                BorderThickness="1"
-                                CornerRadius="12"
-                                Padding="30"
-                                MinHeight="600">
-                            <StackPanel Spacing="40" VerticalAlignment="Top">
-                                <StackPanel Spacing="5">
-                                    <TextBlock Text="{Binding CurrentSettingsTitle}"
-                                        FontSize="22.4"
-                                        FontWeight="Bold"
-                                    />
+                            <!-- Action Buttons -->
+                            <StackPanel Orientation="Horizontal"
+                                        Spacing="10"
+                                        HorizontalAlignment="Right"
+                                        IsVisible="{Binding HasScheduleChanges}">
+                                <TextBlock Text="Changes saved!"
+                                           Foreground="#00CC99"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,10,0"
+                                           IsVisible="{Binding ShowScheduleSuccess}" />
+                                <Button Content="Cancel"
+                                        Command="{Binding CancelScheduleCommand}"
+                                        Background="Transparent"
+                                        BorderBrush="rgba(255,255,255,0.1)"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        Padding="16,8" />
+                                <Button Content="Apply Changes"
+                                        Command="{Binding ApplyScheduleCommand}"
+                                        Background="#3B82F6"
+                                        CornerRadius="6"
+                                        Padding="16,8"
+                                        IsEnabled="{Binding !IsSaving}">
+                                    <Button.Resources>
+                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                         Color="#2563EB" />
+                                        <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                         Color="#1D4ED8" />
+                                    </Button.Resources>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                <!-- Support Settings -->
+                <StackPanel IsVisible="{Binding IsSupportSelected}"
+                            Spacing="10">
+                    <Border Background="rgba(19, 19, 19, 0.4)"
+                            BorderBrush="rgba(255,255,255,0.05)"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="30"
+                            MinHeight="600">
+                        <StackPanel Spacing="40"
+                                    VerticalAlignment="Top">
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="{Binding CurrentSettingsTitle}"
+                                           FontSize="22.4"
+                                           FontWeight="Bold" />
+                            </StackPanel>
+                            <!-- App Updates Section -->
+                            <StackPanel Spacing="15">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="App updates"
+                                               FontSize="13.4"
+                                               FontWeight="SemiBold" />
+                                    <TextBlock Text="Automatically check updates for the AI assistant. Updates may restart background services."
+                                               FontSize="13.4"
+                                               Foreground="#A5CFE5" />
                                 </StackPanel>
-
-                                <!-- App Updates Section -->
-                                <StackPanel Spacing="15">
-                                    <StackPanel Spacing="8">
-                                        <TextBlock Text="App updates" FontSize="13.4" FontWeight="SemiBold" />
-                                        <TextBlock Text="Automatically check updates for the AI assistant. Updates may restart background services." FontSize="13.4" Foreground="#A5CFE5" />
-                                    </StackPanel>
-
-                                    <Grid ColumnDefinitions="*,Auto,Auto">
-                                        <TextBlock Grid.Column="0" Text="Enable auto-updates" VerticalAlignment="Center" />
-                                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding AutoUpdatesEnabled}" Margin="10,0">
-                                            <ToggleSwitch.Resources>
-                                                <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#00CC99" />
-                                                <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#00CC99" />
-                                                <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#00CC99" />
-                                                <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#00CC99" />
-                                                <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#00CC99" />
-                                                <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#00CC99" />
-                                            </ToggleSwitch.Resources>
-                                        </ToggleSwitch>
-                                        <Button Grid.Column="2" Content="{Binding CheckNowButtonText}" Padding="15,8" FontSize="13.4" CornerRadius="5" Background="rgba(59, 130, 246, 1)" Command="{Binding UpdateNowCommand}" IsEnabled="{Binding IsCheckingUpdate, Converter={x:Static vm:BooleanNegationConverter.Instance}}">
-                                            <Button.Resources>
-                                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="rgba(37, 99, 235, 1)" />
-                                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="rgba(29, 78, 216, 1)" />
-                                            </Button.Resources>
-                                        </Button>
-                                    </Grid>
-                                </StackPanel>
-
-                                <!-- Feedback & Issues Section -->
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <StackPanel Grid.Column="0" Spacing="8">
-                                        <TextBlock Text="Feedback &amp; issues" FontSize="13.4" FontWeight="SemiBold" />
-                                        <TextBlock Text="Tell us what's working and what isn't." FontSize="13.4" Foreground="#A5CFE5" />
-                                    </StackPanel>
-
-                                    <Button Grid.Column="1"
-                                            Content="Send Feedback"
+                                <Grid ColumnDefinitions="*,Auto,Auto">
+                                    <TextBlock Grid.Column="0"
+                                               Text="Enable auto-updates"
+                                               VerticalAlignment="Center" />
+                                    <ToggleSwitch Grid.Column="1"
+                                                  IsChecked="{Binding AutoUpdatesEnabled}"
+                                                  Margin="10,0">
+                                        <ToggleSwitch.Resources>
+                                            <SolidColorBrush x:Key="ToggleSwitchFillOn"
+                                                             Color="#00CC99" />
+                                            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver"
+                                                             Color="#00CC99" />
+                                            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed"
+                                                             Color="#00CC99" />
+                                            <SolidColorBrush x:Key="ToggleSwitchStrokeOn"
+                                                             Color="#00CC99" />
+                                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver"
+                                                             Color="#00CC99" />
+                                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed"
+                                                             Color="#00CC99" />
+                                        </ToggleSwitch.Resources>
+                                    </ToggleSwitch>
+                                    <Button Grid.Column="2"
+                                            Content="{Binding CheckNowButtonText}"
                                             Padding="15,8"
                                             FontSize="13.4"
                                             CornerRadius="5"
                                             Background="rgba(59, 130, 246, 1)"
-                                            VerticalAlignment="Center"
-                                            Command="{Binding SendFeedbackCommand}">
+                                            Command="{Binding UpdateNowCommand}"
+                                            IsEnabled="{Binding IsCheckingUpdate, Converter={x:Static vm:BooleanNegationConverter.Instance}}">
                                         <Button.Resources>
-                                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="rgba(37, 99, 235, 1)" />
-                                            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="rgba(29, 78, 216, 1)" />
+                                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                             Color="rgba(37, 99, 235, 1)" />
+                                            <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                             Color="rgba(29, 78, 216, 1)" />
                                         </Button.Resources>
                                     </Button>
                                 </Grid>
-
-                                <!-- Documentation Section -->
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <StackPanel Grid.Column="0" Spacing="8">
-                                        <TextBlock Text="Documentation" FontSize="13.4" FontWeight="SemiBold" />
-                                        <TextBlock Text="Guides, how-tos, and API reference for BAISS." FontSize="13.4" Foreground="#A5CFE5" />
-                                    </StackPanel>
-
-                                    <Button Grid.Column="1"
-                                            Content="Open documentation"
-                                            Padding="15,8"
-                                            FontSize="13.4"
-                                            CornerRadius="5"
-                                            Background="rgba(59, 130, 246, 1)"
-                                            VerticalAlignment="Center"
-                                            Command="{Binding OpenDocumentationCommand}">
-                                        <Button.Resources>
-                                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="rgba(37, 99, 235, 1)" />
-                                            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="rgba(29, 78, 216, 1)" />
-                                        </Button.Resources>
-                                    </Button>
-                                </Grid>
-
-                                <!-- Uninstall BAISS Section -->
-                                <!-- <Grid ColumnDefinitions="*,Auto">
+                            </StackPanel>
+                            <!-- Feedback & Issues Section -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0"
+                                            Spacing="8">
+                                    <TextBlock Text="Feedback &amp; issues"
+                                               FontSize="13.4"
+                                               FontWeight="SemiBold" />
+                                    <TextBlock Text="Tell us what's working and what isn't."
+                                               FontSize="13.4"
+                                               Foreground="#A5CFE5" />
+                                </StackPanel>
+                                <Button Grid.Column="1"
+                                        Content="Send Feedback"
+                                        Padding="15,8"
+                                        FontSize="13.4"
+                                        CornerRadius="5"
+                                        Background="rgba(59, 130, 246, 1)"
+                                        VerticalAlignment="Center"
+                                        Command="{Binding SendFeedbackCommand}">
+                                    <Button.Resources>
+                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                         Color="rgba(37, 99, 235, 1)" />
+                                        <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                         Color="rgba(29, 78, 216, 1)" />
+                                    </Button.Resources>
+                                </Button>
+                            </Grid>
+                            <!-- Documentation Section -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0"
+                                            Spacing="8">
+                                    <TextBlock Text="Documentation"
+                                               FontSize="13.4"
+                                               FontWeight="SemiBold" />
+                                    <TextBlock Text="Guides, how-tos, and API reference for BAISS."
+                                               FontSize="13.4"
+                                               Foreground="#A5CFE5" />
+                                </StackPanel>
+                                <Button Grid.Column="1"
+                                        Content="Open documentation"
+                                        Padding="15,8"
+                                        FontSize="13.4"
+                                        CornerRadius="5"
+                                        Background="rgba(59, 130, 246, 1)"
+                                        VerticalAlignment="Center"
+                                        Command="{Binding OpenDocumentationCommand}">
+                                    <Button.Resources>
+                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver"
+                                                         Color="rgba(37, 99, 235, 1)" />
+                                        <SolidColorBrush x:Key="ButtonBackgroundPressed"
+                                                         Color="rgba(29, 78, 216, 1)" />
+                                    </Button.Resources>
+                                </Button>
+                            </Grid>
+                            <!-- Uninstall BAISS Section -->
+                            <!-- <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel Grid.Column="0" Spacing="8">
                                         <TextBlock Text="Uninstall BAISS" FontSize="13.4" FontWeight="SemiBold" />
                                         <StackPanel Spacing="2">
@@ -1067,16 +1320,10 @@
                                         </Button.Resources>
                                     </Button>
                                 </Grid> -->
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
+            </StackPanel>
         </ScrollViewer>
     </Grid>
-
 </UserControl>
-
-
-
-
