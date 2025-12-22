@@ -527,6 +527,14 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnRootPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            BeginMoveDrag(e);
+        }
+    }
+
     private void OnComboBoxPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (e.Source is not Control sourceControl)
