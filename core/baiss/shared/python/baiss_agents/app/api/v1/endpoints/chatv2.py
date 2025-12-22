@@ -352,7 +352,7 @@ async def get_pre_chat(websocket: WebSocket):
             db_client.disconnect()
 
         #TODO: system prompt should be cached and launched with the API 
-        system_prompt_path_str = get_baiss_project_path("core","baiss","shared","python","baiss_agents","app","system_prompt","brain","brainv2.md")
+        system_prompt_path_str = get_baiss_project_path("core","baiss","shared","python","baiss_agents","app","system_prompt","brain","brain.md")
         
         system_prompt_path = Path(system_prompt_path_str)
 
