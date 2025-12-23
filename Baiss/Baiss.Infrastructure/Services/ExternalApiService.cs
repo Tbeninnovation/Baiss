@@ -1215,7 +1215,7 @@ public class ExternalApiService : IExternalApiService, IDisposable
 	{
 		try
 		{
-			var endpoint = baseUrl + "models/model_details";
+			var endpoint = _baseUrl + "models/model_details";
 			var requestDto = new ModelDetailsRequestDto
 			{
 				ModelId = modelId,

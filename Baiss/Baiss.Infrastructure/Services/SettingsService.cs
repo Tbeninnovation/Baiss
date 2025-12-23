@@ -647,7 +647,7 @@ public class SettingsService : ISettingsService
                 {
                     try
                     {
-                        _logger.LogInformation("Restarting llama-cpp server with new chat model: {ModelId}", settings.AIEmbeddingModelId);
+                        _logger.LogInformation("Restarting llama-cpp server with new embedding model: {ModelId}", settings.AIEmbeddingModelId);
 
                         // Stop existing server if running using the centralized method
                         _logger.LogInformation("Stopping existing llama-cpp server process");
@@ -660,7 +660,7 @@ public class SettingsService : ISettingsService
                             _logger.LogInformation("Launching llama-cpp server with model path: {ModelPath}", modelPath);
 
                             // Launch new server with the updated model
-                            var newProcess = await _launchServerService.LaunchLlamaCppServerAsync("embedding", modelPath);
+                            var newProcess = await _launchServerService.LaunchLlamaCppServerAsync("embedding", modelPath, "--embeddings");
                             if (newProcess != null)
                             {
                                 _logger.LogInformation("llama-cpp server restarted successfully with new model");
