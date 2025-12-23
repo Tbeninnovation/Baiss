@@ -17,14 +17,16 @@ public class ExternalApiService : IExternalApiService, IDisposable
 	private readonly IModelRepository _modelRepository;
 	private readonly ISettingsRepository _settingsRepository;
 	private readonly ILaunchServerService _launchServerService;
-	private readonly Uri _webSocketEndpoint;
+	private readonly ILaunchPythonServerService _launchPythonServerService;
+	private Uri _webSocketEndpoint;
 	private readonly SemaphoreSlim _connectionSemaphore = new SemaphoreSlim(1, 1);
 	private bool _disposed = false;
 	private readonly string _releaseInfoUrl;
 
 	public List<Baiss.Application.DTOs.PathScoreDto> LastReceivedPaths { get; private set; } = new List<Baiss.Application.DTOs.PathScoreDto>();
 
-	private static readonly string baseUrl = "http://localhost:8000/ai/api/v1/";
+
+	private string _baseUrl;
 	private static readonly string chatEndpoint = "chatv2/chatv2";
 
 	private static readonly string updateEndpoint = "check-update/";
@@ -32,15 +34,19 @@ public class ExternalApiService : IExternalApiService, IDisposable
 	private static readonly ILoggerFactory _loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 	private static readonly ILogger _staticLogger = _loggerFactory.CreateLogger<ExternalApiService>();
 
-	public ExternalApiService(HttpClient httpClient, ILogger<ExternalApiService> logger, IModelRepository modelRepository, ISettingsRepository settingsRepository, ILaunchServerService launchServerService)
+	public ExternalApiService(HttpClient httpClient, ILogger<ExternalApiService> logger, IModelRepository modelRepository, ISettingsRepository settingsRepository, ILaunchServerService launchServerService, ILaunchPythonServerService launchPythonServerService)
 	{
 		_httpClient = httpClient;
 		_logger = logger;
 		_modelRepository = modelRepository;
 		_settingsRepository = settingsRepository;
 		_launchServerService = launchServerService;
+		_launchPythonServerService = launchPythonServerService;
+
+		var port = _launchPythonServerService.PythonServerPort;
+		_baseUrl = $"http://localhost:{port}/ai/api/v1/";
 		// _configChatService = configChatService;
-		_webSocketEndpoint = new Uri("ws://localhost:8000/api/v1/chatv2/pre_chat");
+		_webSocketEndpoint = new Uri($"ws://localhost:{port}/api/v1/chatv2/pre_chat");
 
 		// Configure release info URL from environment variable or use default
 		_releaseInfoUrl = Environment.GetEnvironmentVariable("BAISS_RELEASE_INFO_URL")
@@ -208,9 +214,6 @@ public class ExternalApiService : IExternalApiService, IDisposable
 			var jsonContent = JsonSerializer.Serialize(request);
 			var buffer = System.Text.Encoding.UTF8.GetBytes(jsonContent);
 
-			Console.WriteLine("Request prepared for WebSocket streaming. ================>>>>>>>>>>>>>>> " + jsonContent);
-
-
 
 			streamWebSocket = new ClientWebSocket();
 			_logger.LogInformation("Connecting to WebSocket for streaming: {Endpoint}", _webSocketEndpoint);
@@ -330,7 +333,7 @@ public class ExternalApiService : IExternalApiService, IDisposable
 				if (responseProp.TryGetProperty("code_execution_status", out var codeExecStatus))
 				{
 					result.CodeExecutionStatus = codeExecStatus.GetBoolean();
-					if (responseProp.TryGetProperty("error", out var codeExecError) && 
+					if (responseProp.TryGetProperty("error", out var codeExecError) &&
 					    codeExecError.ValueKind != JsonValueKind.Null)
 					{
 						result.CodeExecutionError = codeExecError.GetString();
@@ -417,7 +420,7 @@ public class ExternalApiService : IExternalApiService, IDisposable
 		public List<string> TextChunks { get; set; } = new List<string>();
 		public List<Baiss.Application.DTOs.PathScoreDto> Paths { get; set; } = new List<Baiss.Application.DTOs.PathScoreDto>();
 		public bool IsComplete { get; set; }
-		
+
 		// Code execution status: null = not a code execution message, true = success, false = error
 		public bool? CodeExecutionStatus { get; set; }
 		public string? CodeExecutionError { get; set; }
@@ -537,7 +540,7 @@ public class ExternalApiService : IExternalApiService, IDisposable
 	{
 		try
 		{
-			var endpoint = baseUrl + "models/start";
+			var endpoint = _baseUrl + "models/start";
 
 			var requestBody = new Dictionary<string, string>
 			{
@@ -593,7 +596,7 @@ public class ExternalApiService : IExternalApiService, IDisposable
 	{
 		try
 		{
-			var endpoint = baseUrl + "models/list/progress";
+			var endpoint = _baseUrl + "models/list/progress";
 
 			var response = await _httpClient.GetAsync(endpoint);
 			var responseContent = await response.Content.ReadAsStringAsync();
@@ -634,7 +637,8 @@ public class ExternalApiService : IExternalApiService, IDisposable
 	{
 		try
 		{
-			var endpoint = baseUrl + "models/list";
+			await Task.Delay(5000);
+			var endpoint = _baseUrl + "models/list";
 			var requestBody = new { };
 			var jsonContent = JsonSerializer.Serialize(requestBody);
 			var httpContent = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
@@ -677,7 +681,7 @@ public class ExternalApiService : IExternalApiService, IDisposable
 	{
 		try
 		{
-			var endpoint = baseUrl + "models/delete";
+			var endpoint = _baseUrl + "models/delete";
 
 			var requestBody = new
 			{
@@ -730,7 +734,7 @@ public class ExternalApiService : IExternalApiService, IDisposable
 	{
 		try
 		{
-			var endpoint = baseUrl + "models/stop";
+			var endpoint = _baseUrl + "models/stop";
 
 			var requestBody = new { process_id = processId };
 			var jsonContent = JsonSerializer.Serialize(requestBody);
@@ -776,7 +780,7 @@ public class ExternalApiService : IExternalApiService, IDisposable
 	{
 		try
 		{
-			var endpoint = baseUrl + "models/progress";
+			var endpoint = _baseUrl + "models/progress";
 
 
 
@@ -827,7 +831,7 @@ public class ExternalApiService : IExternalApiService, IDisposable
 	{
 		try
 		{
-			var endpoint = baseUrl + $"models/model_info?model_id={Uri.EscapeDataString(modelId)}";
+			var endpoint = _baseUrl + $"models/model_info?model_id={Uri.EscapeDataString(modelId)}";
 
 			var response = await _httpClient.PostAsync(endpoint, null);
 			var responseContent = await response.Content.ReadAsStringAsync();
@@ -912,7 +916,7 @@ public class ExternalApiService : IExternalApiService, IDisposable
 		ClientWebSocket? streamWebSocket = null;
 		try
 		{
-			Uri endpoint = new Uri("ws://localhost:8000/api/v1/files/tree-structure/start");
+			Uri endpoint = new Uri($"ws://localhost:{_launchPythonServerService.PythonServerPort}/api/v1/files/tree-structure/start");
 
 			var requestBody = new RequestCallTree
 			{
@@ -1055,7 +1059,7 @@ public class ExternalApiService : IExternalApiService, IDisposable
 		try
 		{
 			object requestBody;
-			var endpoint = baseUrl;
+			var endpoint = _baseUrl;
 
 			if (paths != null || paths.Count > 0)
 			{
@@ -1107,7 +1111,7 @@ public class ExternalApiService : IExternalApiService, IDisposable
 	{
 		try
 		{
-			var endpoint = baseUrl + "files/stop_tree_structure_operation";
+			var endpoint = _baseUrl + "files/stop_tree_structure_operation";
 
 			var response = await _httpClient.PostAsync(endpoint, null);
 			var responseContent = await response.Content.ReadAsStringAsync();
@@ -1131,7 +1135,7 @@ public class ExternalApiService : IExternalApiService, IDisposable
 	{
 		try
 		{
-			var endpoint = baseUrl + "baiss-app/update";
+			var endpoint = _baseUrl + "baiss-app/update";
 
 			// Create a dedicated HttpClient with infinite timeout for this long-running operation
 			using var httpClient = new HttpClient
@@ -1161,22 +1165,48 @@ public class ExternalApiService : IExternalApiService, IDisposable
 	{
 		try
 		{
-			var endpoint = baseUrl + "baiss-app/health";
+			var endpoint = _baseUrl + "baiss-app/health";
 
 			var response = await _httpClient.GetAsync(endpoint);
 			var responseContent = await response.Content.ReadAsStringAsync();
 
 			if (!response.IsSuccessStatusCode)
 			{
-				_logger.LogError("Failed to cancel tree structure operation. Status Code: {StatusCode}, Response: {Response}", response.StatusCode, responseContent);
-				return false;
+				_logger.LogWarning("Health check failed. Status Code: {StatusCode}. Restarting Python server...", response.StatusCode);
+				return await RestartPythonServer();
 			}
 
 			return true;
 		}
 		catch (Exception ex)
 		{
-			_logger.LogWarning("Unexpected error calling cancel tree structure API: {Message}", ex.Message);
+			_logger.LogWarning("Health check failed: {Message}. Restarting Python server...", ex.Message);
+			return false;
+			// return await RestartPythonServer();
+		}
+	}
+
+	private async Task<bool> RestartPythonServer()
+	{
+		try
+		{
+			await _launchPythonServerService.StopPythonServerAsync();
+			var process = _launchPythonServerService.LaunchPythonServer();
+
+			if (process != null)
+			{
+				var port = _launchPythonServerService.PythonServerPort;
+				_baseUrl = $"http://localhost:{port}/ai/api/v1/";
+				_webSocketEndpoint = new Uri($"ws://localhost:{port}/api/v1/chatv2/pre_chat");
+				_logger.LogInformation("Python server restarted on port {Port}", port);
+				return true;
+			}
+
+			return false;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Failed to restart Python server");
 			return false;
 		}
 	}

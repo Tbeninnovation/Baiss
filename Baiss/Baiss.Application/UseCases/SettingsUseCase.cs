@@ -323,4 +323,9 @@ public class SettingsUseCase
 		_settingsService.RefreshTreeStructure();
 	}
 
+	public Task RestartServerAsync(string modelType)
+	{
+		return _settingsService.RestartServerAsync(modelType);
+	}
+
 }
