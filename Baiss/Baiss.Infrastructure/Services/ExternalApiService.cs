@@ -637,6 +637,7 @@ public class ExternalApiService : IExternalApiService, IDisposable
 	{
 		try
 		{
+			await Task.Delay(5000);
 			var endpoint = _baseUrl + "models/list";
 			var requestBody = new { };
 			var jsonContent = JsonSerializer.Serialize(requestBody);
@@ -1180,7 +1181,8 @@ public class ExternalApiService : IExternalApiService, IDisposable
 		catch (Exception ex)
 		{
 			_logger.LogWarning("Health check failed: {Message}. Restarting Python server...", ex.Message);
-			return await RestartPythonServer();
+			return false;
+			// return await RestartPythonServer();
 		}
 	}
 

@@ -1385,4 +1385,37 @@ public class SettingsService : ISettingsService
         return _externalApiService.GetModelInfoAsync(modelId);
     }
 
+    public async Task RestartServerAsync(string modelType)
+    {
+        var settings = await _settingsRepository.GetAsync();
+        if (settings == null) return;
+
+        string? modelId = modelType == "chat" ? settings.AIChatModelId : settings.AIEmbeddingModelId;
+        if (string.IsNullOrEmpty(modelId)) return;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                _logger.LogInformation("Restarting llama-cpp server for {ModelType} with model: {ModelId}", modelType, modelId);
+
+                await _launchServerService.StopServerByTypeAsync(modelType);
+
+                var modelPath = await _modelRepository.GetPathByModelIdAsync(modelId);
+                if (!string.IsNullOrEmpty(modelPath) && File.Exists(modelPath))
+                {
+                    await _launchServerService.LaunchLlamaCppServerAsync(modelType, modelPath);
+                }
+                else
+                {
+                    _logger.LogWarning("Cannot restart server: Model path not found or file does not exist for model: {ModelId}", modelId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error restarting llama-cpp server for {ModelType}", modelType);
+            }
+        });
+    }
+
 }
