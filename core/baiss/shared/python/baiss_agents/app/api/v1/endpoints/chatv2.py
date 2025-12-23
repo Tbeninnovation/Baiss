@@ -322,37 +322,47 @@ async def get_pre_chat(websocket: WebSocket):
             unprocessed_paths = [path for path, exists in existing_paths.items() if not exists]
             if len(unprocessed_paths) > 0:
                 logging.info(f"Starting tree structure operation for unprocessed paths: {unprocessed_paths}")
-                for unprocessed_path in unprocessed_paths:
-                    logging.info(f"Unprocessed path: {unprocessed_path}")
-                    await websocket.send_json({
-                        "success" : True,
-                        "error"   : None,
-                        "response": {
-                            "choices": [{"unprocessed_path": unprocessed_path, "messages": []}]
-                        }
-                        })
-                    tree_structure_result = await start_tree_structure_operation_impl(unprocessed_paths, extensions=["csv", "pdf", "xlsx", "xls", "txt", "docx", "md"], url=url_embedding)
-                    if tree_structure_result.status_code != 200:
+                try:
+                    for unprocessed_path in unprocessed_paths:
+                        logging.info(f"Unprocessed path: {unprocessed_path}")
                         await websocket.send_json({
-                            "status": 400,
-                            "success": False,
-                            "message": str(e),
-                            "error": str(e),
-                            "timestamp": now()
-                        })
-                    else:
-                        await websocket.send_json({
-                            "status": 200,
                             "success" : True,
                             "error"   : None,
                             "response": {
-                                "choices": [{"processed_path": unprocessed_path, "messages": []}]
+                                "choices": [{"unprocessed_path": unprocessed_path, "messages": []}]
                             }
-                        })
+                            })
+                        tree_structure_result = await start_tree_structure_operation_impl(unprocessed_paths, extensions=["csv", "pdf", "xlsx", "xls", "txt", "docx", "md"], url=url_embedding)
+                        if tree_structure_result.status_code != 200:
+                            await websocket.send_json({
+                                "status": 400,
+                                "success": False,
+                                "message": str(e),
+                                "error": str(e),
+                                "timestamp": now()
+                            })
+                        else:
+                            await websocket.send_json({
+                                "status": 200,
+                                "success" : True,
+                                "error"   : None,
+                                "response": {
+                                    "choices": [{"processed_path": unprocessed_path, "messages": []}]
+                                }
+                            })
+                except Exception as e:
+                    logging.error(f"Error during tree structure operation: {e}", exc_info=True)
+                    await websocket.send_json({
+                        "status": 500,
+                        "success": False,
+                        "message": "Error processing unprocessed paths",
+                        "error": str(e),
+                        "timestamp": now()
+                    })
             db_client.disconnect()
 
         #TODO: system prompt should be cached and launched with the API 
-        system_prompt_path_str = get_baiss_project_path("core","baiss","shared","python","baiss_agents","app","system_prompt","brain","brainv2.md")
+        system_prompt_path_str = get_baiss_project_path("core","baiss","shared","python","baiss_agents","app","system_prompt","brain","brain.md")
         
         system_prompt_path = Path(system_prompt_path_str)
 

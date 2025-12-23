@@ -12,6 +12,7 @@ import sys
 import platform
 import signal
 import subprocess
+import argparse
 
 # Add the parent directories to Python path to allow imports
 current_dir = Path(__file__).parent.absolute()
@@ -116,10 +117,14 @@ def kill_process_using_port(port):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Run the Baiss API server locally")
+    parser.add_argument("--port", type=int, default=8000, help="Port to run the server on")
+    args = parser.parse_args()
+
     # Set the current working directory to the script's directory
     os.chdir(current_dir)
 
-    port = 8000
+    port = args.port
     # Kill any process using the port
     kill_process_using_port(port)
     logging.info(f"Starting FastAPI server on port {port}...")
