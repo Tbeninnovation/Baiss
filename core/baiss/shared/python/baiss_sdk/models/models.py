@@ -16,10 +16,8 @@ class HuggingFaceGgufFetcher:
         Fetch models with GGUF files filtered by license.
         
         Args:
-            licenses: List of licenses (e.g., ['mit', 'apache-2.0'])
-            limit: Maximum number of models to fetch (None for all)
-            sort: Sort criterion ('downloads', 'likes', 'lastModified')
-            direction: Sort direction (-1 for descending, 1 for ascending)
+            model_id: Hugging Face model ID
+            purpose: Purpose of the model ('chat' or 'embedding')
         """
         if purpose not in ["chat", "embedding"]:
             raise ValueError("Invalid purpose. Choose either 'chat' or 'embedding'.")
@@ -27,7 +25,8 @@ class HuggingFaceGgufFetcher:
             repo_id=model_id
         )
 
-        print("Checking model:", model)
+
+        # print("Checking model:", model)
 
         files = self.api.list_repo_files(
             repo_id=model_id,
@@ -37,8 +36,6 @@ class HuggingFaceGgufFetcher:
         gguf_files = [f for f in files if f.lower().endswith('.gguf')]
         models_with_gguf = [] 
         if len(gguf_files) > 0:
-            print("dzefsdgsdgsdfgdfsdgfsgsg")
-            # Get detailed file info
             gguf_details = []
             for idx, gguf_file in enumerate(gguf_files):
                 try:
@@ -47,7 +44,6 @@ class HuggingFaceGgufFetcher:
                         paths=[gguf_file],
                         repo_type="model"
                     )
-                    print("file_info:", file_info)
                     if file_info:
                         gguf_details.append({
                             'filename': gguf_file,
@@ -65,7 +61,6 @@ class HuggingFaceGgufFetcher:
                         'default': idx == 0
                     })
             
-            # Fetch README description
             readme_description = self._get_readme_description(model_id)
 
             model_name = model_id.split('/')[-1]
@@ -87,9 +82,7 @@ class HuggingFaceGgufFetcher:
             }
             
             models_with_gguf.append(model_info)
-            print(f"✓ Found: {model.id} ({len(gguf_details)} GGUF files)")
         else:
-            print(f"✗ No GGUF files found for model: {model.id}")
             return []
         return models_with_gguf
     
@@ -104,14 +97,12 @@ class HuggingFaceGgufFetcher:
             )
             with open(readme_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-            # Strip leading whitespace and take first max_chars characters
             content = content.strip()[:max_chars]
             return content
         except Exception as e:
             print(f"Could not fetch README.md: {e}")
             return ""
         finally:
-            # Clean up the downloaded file
             if readme_path and os.path.exists(readme_path):
                 try:
                     os.remove(readme_path)
@@ -135,9 +126,8 @@ class HuggingFaceGgufFetcher:
 if __name__ == "__main__":
     fetcher = HuggingFaceGgufFetcher(token=None)
     model_id="google/gemma-3-27b-it-qat-q4_0-gguf"
-    print("🚀 Starting search for models with GGUF files...")
+    print("Starting search for models with GGUF files...")
     
-    # Fetch models with GGUF files
     models = fetcher.get_models_with_gguf(
         model_id=model_id
     )

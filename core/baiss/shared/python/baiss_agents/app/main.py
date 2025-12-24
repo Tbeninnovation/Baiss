@@ -10,6 +10,15 @@ from baiss_agents.app.api.v1.router import api_router
 import logging
 import sys
 
+# Windows console encoding fix
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except AttributeError:
+        # Python < 3.7 doesn't support reconfigure
+        pass
+
 # Configure logging to output to STDOUT for CloudWatch
 logging.basicConfig(
     # filename='logs/app.log',
