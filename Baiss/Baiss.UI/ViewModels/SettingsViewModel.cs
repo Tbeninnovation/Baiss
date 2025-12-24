@@ -1167,7 +1167,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
                 // Auto-save when selection changes (if not suppressed)
                 if (!_suppressAutoLoad)
                 {
-                    ScheduleAutoSave();
+                    _ = SaveEmbeddingModelSettingsAsync(showSuccessToast: false);
                 }
             }
         }
@@ -2895,10 +2895,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
             OnPropertyChanged(nameof(HasDownloadedLocalModels));
         }
 
-        if (SelectedLocalEmbeddingModel == null && firstEmbeddingModel != null)
-        {
-            SelectedLocalEmbeddingModel = firstEmbeddingModel;
-        }
+
 
         // Update downloaded models by purpose collections
         UpdateDownloadedModelsByPurpose();
@@ -6036,6 +6033,84 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         await SaveAIModelSettingsAsync(showSuccessToast: false);
         // Notify that chat model selection changed for validation
         OnPropertyChanged("ChatModelSavedForValidation");
+    }
+
+    private async Task SaveEmbeddingModelSettingsAsync(bool showSuccessToast = true, bool allowEmptySelections = false)
+    {
+        if (IsSaving) return; // Prevent multiple simultaneous saves
+
+        try
+        {
+            IsSaving = true;
+
+            // Validate that we have a model selected based on the model type
+            if (AIModelType == ModelTypes.Local)
+            {
+                // For local models, check local selections
+                if (!allowEmptySelections && SelectedLocalEmbeddingModel == null)
+                {
+                    _logger.LogWarning("No local embedding model selected, cannot save.");
+                    try { Views.MainWindow.ToastServiceInstance.Show("Select an embedding model", 4000); } catch { }
+                    return;
+                }
+            }
+
+            string? embeddingModelId = null;
+
+            // Determine which models to save based on the model type
+            if (AIModelType == ModelTypes.Local)
+            {
+                embeddingModelId = allowEmptySelections && SelectedLocalEmbeddingModel == null ? string.Empty : SelectedLocalEmbeddingModel?.Id;
+            }
+            else if (AIModelType == ModelTypes.Hosted)
+            {
+                embeddingModelId = allowEmptySelections && SelectedHostedEmbeddingModel == null ? string.Empty : SelectedHostedEmbeddingModel?.Id;
+            }
+
+            var updateDto = new UpdateAIModelSettingsDto
+            {
+                AIModelType = AIModelType,
+                AIChatModelId = null, // Explicitly null to avoid affecting chat settings
+                AIEmbeddingModelId = embeddingModelId,
+                AIModelProviderScope = AIModelProviderScope,
+                HuggingFaceApiKey = HuggingFaceApiKey
+            };
+
+            var result = await _settingsUseCase.UpdateAIModelSettingsAsync(updateDto);
+
+            _logger.LogInformation("Successfully saved embedding model settings: Type={Type}, Embedding={Embedding}, Provider={Provider}",
+                AIModelType, updateDto.AIEmbeddingModelId, SelectedProvider);
+
+            if (showSuccessToast)
+            {
+                string savedName;
+                if (AIModelType == ModelTypes.Local)
+                {
+                    savedName = SelectedLocalEmbeddingModel?.Name ?? (allowEmptySelections ? "Cleared selection" : "Model");
+                }
+                else if (AIModelType == ModelTypes.Hosted)
+                {
+                    savedName = SelectedHostedEmbeddingModel?.Name ?? (allowEmptySelections ? "Cleared selection" : "Model");
+                }
+                else
+                {
+                    savedName = (allowEmptySelections ? "Cleared selection" : "Model");
+                }
+                try { Views.MainWindow.ToastServiceInstance.ShowSuccess($"Embedding model saved: {savedName}", 3000); } catch { }
+            }
+
+            // Reload settings from database to reflect the saved changes
+            await RefreshAIModelSettingsFromDatabaseAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving embedding model settings: {Message}", ex.Message);
+            try { Views.MainWindow.ToastServiceInstance.ShowError("Failed to save embedding model settings", 5000); } catch { }
+        }
+        finally
+        {
+            IsSaving = false;
+        }
     }
 
     /// <summary>
