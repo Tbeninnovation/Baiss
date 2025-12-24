@@ -18,7 +18,7 @@ import shutil
 from huggingface_hub import HfApi
 import json
 import traceback
-
+from baiss_sdk.models.models import HuggingFaceGgufFetcher
 BAISS_MODEL_INFO_BASENAME = "baiss_model_info.json"
 
 # Initialize router
@@ -51,6 +51,7 @@ class DownloadProgress:
 class StartDownloadModelRequest(BaseModel):
     model_id: str
     models_dir: str = ""
+    token: str = None
 
 class ProgressDownloadModelRequest(BaseModel):
     process_id: str
@@ -160,7 +161,7 @@ class DownloadManager:
             return False
         return progress.status in [DownloadStatus_DOWNLOADING]
 
-    def _download_worker(self, process_id: str, model_id: str, models_dir: str, stop_event: threading.Event):
+    def _download_worker(self, process_id: str, model_id: str, models_dir: str, stop_event: threading.Event, token: str = None):
         """Worker function that performs the actual download"""
         progress   = self.active_downloads[process_id]
         model_dict = self._eventsinfo[process_id]
@@ -176,7 +177,7 @@ class DownloadManager:
             progress.current_file = rfilename
             try:
                 success = self._download_file_with_interruption(
-                    model_id, rfilename, model_dir, stop_event, filename, model_dict
+                    model_id, rfilename, model_dir, stop_event, filename, model_dict, token=token
                 )
                 if not success:
                     break
@@ -211,12 +212,16 @@ class DownloadManager:
             stop_event: threading.Event,
             filename  : str,
             model_dict: dict,
+            token: str = None
         ) -> bool:
         try:
             url = hf_hub_url(repo_id=model_id, filename=rfilename)
             os.makedirs(os.path.dirname(filename), exist_ok=True)
             headers     = {}
             initial_pos = 0
+            # Add authentication header if token is provided
+            if token:
+                headers['Authorization'] = f'Bearer {token}'
             if os.path.exists(filename):
                 initial_pos = os.path.getsize(filename)
                 headers['Range'] = f'bytes={initial_pos}-'
@@ -243,8 +248,6 @@ class DownloadManager:
                     str_progress   = ("  " + str(int((downloaded * 100.0 / total_size) + 0.000001)))[-3:] + "%"
                     str_downloaded = (" " * 11 + str(str(downloaded)))[-11:]
                     str_total_size = (" " * 11 + str(str(total_size)))[-11:] + " Bytes"
-                    # print(f"\rDownloading file: [{str_progress}] {str_downloaded}/{str_total_size} : {rfilename} ...", end='', flush=True)
-            # print("")  # New line after download completion
             return True
 
         except Exception as e:
@@ -257,13 +260,14 @@ class DownloadManager:
                     local_dir=target_dir,
                     local_dir_use_symlinks=False,
                     resume_download=True,
+                    token=token
                 )
                 return not stop_event.is_set()
             except Exception as fallback_error:
                 logger.error(f"Fallback download also failed for {rfilename}: {fallback_error}")
                 return False
 
-    def start_download(self, process_id: str, model_id: str, models_dir: str) -> bool:
+    def start_download(self, process_id: str, model_id: str, models_dir: str, token: str = None) -> bool:
         """Start a new download process"""
         raw_model_id = model_id
         logger.info(f"Initiating download for model {raw_model_id} with process ID {process_id}")
@@ -348,7 +352,7 @@ class DownloadManager:
             # Start download thread
             download_thread = threading.Thread(
                 target=self._download_worker,
-                args=(process_id, model_id, models_dir, stop_event)
+                args=(process_id, model_id, models_dir, stop_event, token)
             )
             download_thread.daemon = True
             download_thread.start()
@@ -489,7 +493,7 @@ async def download_start(request: StartDownloadModelRequest):
     #
     try:
         try:
-            success = dmger.start_download(process_id, request.model_id, models_dir)
+            success = dmger.start_download(process_id, request.model_id, models_dir, token=request.token)
             if not success:
                 raise Exception("Failed to initiate download")
         except Exception as e:
@@ -761,64 +765,31 @@ def get_model_info(model_id: str, models_dir: str = _get_default_modelsdir()) ->
         "data"    : info_dict
     }
 
-@router.get("/available_models")
-async def download_available_models():
-    """Get available models from Hugging Face API"""
+class ModelDetailsRequest(BaseModel):
+    model_id: str
+    token   : str = None
+
+@router.post("/model_details")
+def get_model_details(request: ModelDetailsRequest) -> dict:
+    """Get detailed model info from Hugging Face Hub"""
     try:
-        models = [
-            AvailableModelsResponse(
-                model_id="Qwen/Qwen3-0.6B-GGUF",
-                purpose="chat"
-            ),
-            AvailableModelsResponse(
-                model_id="Qwen/Qwen3-1.7B-GGUF",
-                purpose="chat"
-            ),
-            AvailableModelsResponse(
-                model_id="Qwen/Qwen3-4B-GGUF",
-                purpose="chat"
-            ),
-            AvailableModelsResponse(
-                model_id="Qwen/Qwen3-8B-GGUF",
-                purpose="chat"
-            ),
-            AvailableModelsResponse(
-                model_id="Qwen/Qwen3-14B-GGUF",
-                purpose="chat"
-            ),
-            AvailableModelsResponse(
-                model_id="Qwen/Qwen3-Embedding-0.6B-GGUF",
-                purpose="embedding"
-            )
-        ]
-
-        return JSONResponse(
-            content={
-                "status": 200,
-                "success": True,
-                "message": "Available models fetched successfully",
-                "error": "",
-                "data": {
-                    "models": [model.dict() for model in models],
-                    "total": len(models)
-                }
-            },
-            status_code=200,
-        )
-
+        model_id = request.model_id
+        if model_id.startswith("http"):
+            model_id = _get_model_id_from_url(request.model_id)
+        fetcher = HuggingFaceGgufFetcher(token=request.token)
+        model_dict = fetcher.get_models_with_gguf(model_id=model_id)
+        if len(model_dict) < 1:
+            raise HTTPException(status_code=404, detail="Model not found or has no GGUF files")
+        return {
+            "status"  : 200,
+            "success" : True,
+            "message" : "",
+            "error"   : "",
+            "data"    : model_dict
+        }
     except Exception as e:
-        logger.error(f"Error fetching available models: {e}")
-        return JSONResponse(
-            content={
-                "status": 500,
-                "success": False,
-                "message": "",
-                "error": f"Failed to fetch available models: {str(e)}",
-                "data": {}
-            },
-            status_code=500,
-        )
-
+        logger.error(f"Error fetching model details: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch model details: {str(e)}")
 
 # if __name__ == "__main__":
 #     data = delete_model(["PaddlePaddle/PaddleOCR-VL"])

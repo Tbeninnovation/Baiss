@@ -411,6 +411,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand CloseModelErrorModalCommand { get; }
     public ICommand GoToSettingsCommand { get; }
     public ICommand ScrollToBottomCommand { get; }
+    public ICommand CopyMessageCommand { get; }
 
     private string _lastOpenedFileContent = string.Empty;
 
@@ -500,6 +501,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
         // Initialize SettingsViewModel
         _settingsViewModel = settingsViewModel ?? throw new ArgumentNullException(nameof(settingsViewModel));
+
+        // Load settings on startup to ensure model selections are populated
+        _ = _settingsViewModel.ReloadSettingsAsync();
+
         _settingsViewModel.PropertyChanged += (s, e) =>
         {
             // Forward property changes from SettingsViewModel
@@ -582,6 +587,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             _ = ValidateChatModelAsync();
             Messages.Clear();
+            ShowScrollToBottom = false; // Hide scroll button when starting new chat
             _currentConversationId = null;
 
             // Deselect current navigation item
@@ -755,6 +761,37 @@ public partial class MainWindowViewModel : ViewModelBase
             // This command will be triggered from the view
             // The actual scrolling logic will be in the code-behind
         });
+
+        // Copy message content to clipboard
+        CopyMessageCommand = new RelayCommand<ChatMessage>(async message =>
+        {
+            if (message == null || string.IsNullOrEmpty(message.Content)) return;
+            try
+            {
+                if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                    desktop.MainWindow != null)
+                {
+                    var clipboard = desktop.MainWindow.Clipboard;
+                    if (clipboard != null)
+                    {
+                        // Strip XML-like tags (e.g., <answer>, </answer>) from content
+                        var cleanContent = System.Text.RegularExpressions.Regex.Replace(
+                            message.Content,
+                            @"</?(?:answer|thinking|search_tool)[^>]*>",
+                            "",
+                            System.Text.RegularExpressions.RegexOptions.IgnoreCase
+                        ).Trim();
+
+                        await clipboard.SetTextAsync(cleanContent);
+                        Views.MainWindow.ToastServiceInstance.ShowSuccess("Message copied to clipboard", 2000);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to copy to clipboard: {ex.Message}");
+            }
+        });
     }
 
     private async Task LoadConversationsAsync()
@@ -820,6 +857,7 @@ public partial class MainWindowViewModel : ViewModelBase
         await ValidateChatModelAsync();
         // Clear current messages
         Messages.Clear();
+        ShowScrollToBottom = false; // Hide scroll button when switching chats
 
         if (item.ConversationId.HasValue)
         {
@@ -1320,6 +1358,38 @@ public partial class MainWindowViewModel : ViewModelBase
                     // Update UI on main thread
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
+                        // Check for code execution status marker
+                        if (textChunk.StartsWith("[CODE_EXEC:"))
+                        {
+                            // Code execution completed - we're now waiting for more data
+                            streamingMessage.IsReceivingData = false;
+                            
+                            // Parse the marker: [CODE_EXEC:status:error]
+                            var parts = textChunk.TrimStart('[').TrimEnd(']').Split(':');
+                            if (parts.Length >= 2)
+                            {
+                                var isSuccess = parts[1] == "success";
+                                var errorMsg = parts.Length > 2 && !string.IsNullOrEmpty(parts[2])
+                                    ? string.Join(":", parts.Skip(2))
+                                    : null;
+
+                                // Get the current code block index (count of code segments)
+                                var codeBlockCount = streamingMessage.MessageSegments
+                                    .OfType<Models.CodeExecutionMessageSegment>()
+                                    .Count();
+
+                                // Update the last code block (index = count - 1)
+                                if (codeBlockCount > 0)
+                                {
+                                    streamingMessage.UpdateCodeExecutionResult(codeBlockCount - 1, isSuccess, errorMsg);
+                                }
+                            }
+                            return; // Don't append the marker to content
+                        }
+
+                        // We're actively receiving data
+                        streamingMessage.IsReceivingData = true;
+                        
                         if (!hasStartedStreaming && streamingMessage.IsLoadingMessage)
                         {
                             streamingMessage.IsLoadingMessage = false;
@@ -1334,6 +1404,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         streamingMessage.IsStreaming = false;
+                        streamingMessage.IsReceivingData = false;
                         streamingMessage.IsLoadingMessage = false;
 
                         var contentSuccess = finalResult.Content?.Success;
@@ -1407,6 +1478,7 @@ public partial class MainWindowViewModel : ViewModelBase
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 streamingMessage.IsStreaming = false;
+                streamingMessage.IsReceivingData = false;
                 streamingMessage.IsLoadingMessage = false;
 
                 // Show model error modal with generic guidance
@@ -1422,6 +1494,7 @@ public partial class MainWindowViewModel : ViewModelBase
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 IsBotTyping = false;
+                streamingMessage.IsReceivingData = false;
                 streamingMessage.IsLoadingMessage = false;
             });
         }

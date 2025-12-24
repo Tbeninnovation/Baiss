@@ -66,6 +66,13 @@ namespace Baiss.Infrastructure.Services
                             configUpdated = true;
                         }
 
+                        if (string.IsNullOrEmpty(configg.LlamaCppServerPath) || !File.Exists(configg.LlamaCppServerPath))
+                        {
+                            configg.LlamaCppServerPath = GetLlamaCppServerPath();
+                            _logger.LogInformation($"LlamaCppServerPath was empty or invalid. Set to: {configg.LlamaCppServerPath}");
+                            configUpdated = true;
+                        }
+
                         // Check if CPU info exists, if not, get and set it
                         if (configg.CpuInfo == null)
                         {
@@ -113,6 +120,7 @@ namespace Baiss.Infrastructure.Services
                 {
 
                     string corePath = GetBaissCorePythonPath();
+                    string llamaServerPath = GetLlamaCppServerPath();
                     var osInfo = GetOperatingSystemInfo();
                     var osArchitecture = System.Runtime.InteropServices.RuntimeInformation.OSArchitecture.ToString();
                     // get Cpu and Gpu and RAM
@@ -129,6 +137,7 @@ namespace Baiss.Infrastructure.Services
                         CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                         PythonPath = defaultPythonPath,
                         BaissPythonCorePath = corePath,
+                        LlamaCppServerPath = llamaServerPath,
                         OSDescription = osInfo,
                         OSArchitecture = osArchitecture,
                         SystemInfo = new
@@ -1004,6 +1013,46 @@ namespace Baiss.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to find Python via py launcher");
+            }
+
+            return string.Empty;
+        }
+
+        private string GetLlamaCppServerPath()
+        {
+            string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string serverName = OperatingSystem.IsWindows() ? "llama-server.exe" : "llama-server";
+
+            // Check if it's in the app directory (production/copied)
+            string serverPath = Path.Combine(appDirectory, "llama-cpp", "bin", serverName);
+            if (File.Exists(serverPath))
+            {
+                return serverPath;
+            }
+
+            // Check dev path relative to Baiss.UI project
+            // Assuming we are in Baiss/Baiss.UI/bin/Debug/net8.0/
+            // We need to go up to root
+
+            // Try to find the root by looking for Baiss.sln
+            string currentDir = appDirectory;
+            while (!string.IsNullOrEmpty(currentDir) && !File.Exists(Path.Combine(currentDir, "Baiss.sln")))
+            {
+                currentDir = Directory.GetParent(currentDir)?.FullName;
+            }
+
+            if (!string.IsNullOrEmpty(currentDir))
+            {
+                // We found Baiss/ folder. The root is one level up.
+                string rootDir = Directory.GetParent(currentDir)?.FullName;
+                if (!string.IsNullOrEmpty(rootDir))
+                {
+                    serverPath = Path.Combine(rootDir, "llama-cpp", "bin", serverName);
+                    if (File.Exists(serverPath))
+                    {
+                        return serverPath;
+                    }
+                }
             }
 
             return string.Empty;

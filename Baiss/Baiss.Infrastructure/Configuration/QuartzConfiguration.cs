@@ -34,6 +34,7 @@ public static class QuartzConfiguration
 
         // Register jobs
         services.AddTransient<LogMessageJob>();
+        services.AddTransient<UpdateTreeStructureJob>();
 
         return services;
     }
@@ -47,7 +48,7 @@ public static class QuartzConfiguration
         {
             // Use the same database as the main application
             var databasePath = DbConstants.DatabasePath;
-            
+
             // The database should already exist from the main application initialization
             if (!File.Exists(databasePath))
             {

@@ -1,0 +1,1 @@
+ALTER TABLE Settings ADD COLUMN HuggingfaceApiKey TEXT NOT NULL DEFAULT '';

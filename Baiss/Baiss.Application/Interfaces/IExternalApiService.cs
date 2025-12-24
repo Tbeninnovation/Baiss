@@ -40,5 +40,12 @@ namespace Baiss.Application.Interfaces
 
         Task<bool> CheckServerStatus();
 
+        /// <summary>
+        /// Gets details for an external model
+        /// </summary>
+        /// <param name="modelId">The model ID to search for</param>
+        /// <param name="token">Optional API token</param>
+        /// <returns>The model details as a ModelDetailsResponseDto</returns>
+        Task<ModelDetailsResponseDto> GetExternalModelDetailsAsync(string modelId, string? token = null);
     }
 }

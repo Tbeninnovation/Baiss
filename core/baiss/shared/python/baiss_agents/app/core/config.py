@@ -126,7 +126,7 @@ from baiss_sdk import get_baiss_project_path
 class Settings(BaseSettings):
     # API Configuration
     API_V1_STR: str = "/api/v1"
-    PROJECT_NAME: str = "Bedrock API Proxy"
+    PROJECT_NAME: str = "Baiss API"
     VERSION: str = "1.0.0"
     DESCRIPTION: str = """
     """

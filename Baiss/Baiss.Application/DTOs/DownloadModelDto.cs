@@ -72,7 +72,7 @@ public class GgufFileInfo
 	public string Filename { get; set; } = string.Empty;
 
 	[JsonPropertyName("size")]
-	public long Size { get; set; }
+	public long? Size { get; set; }
 
 	[JsonPropertyName("size_formatted")]
 	public string SizeFormatted { get; set; } = string.Empty;

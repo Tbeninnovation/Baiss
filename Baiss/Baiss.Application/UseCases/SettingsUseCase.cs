@@ -85,6 +85,16 @@ public class SettingsUseCase
 		return await _settingsService.UpdateAIModelProviderScopeAsync(scope);
 	}
 
+	public async Task<SettingsDto> UpdateTreeStructureScheduleAsync(UpdateTreeStructureScheduleDto scheduleDto)
+	{
+		var result = await _settingsService.UpdateTreeStructureScheduleAsync(scheduleDto);
+		if (result == null)
+		{
+			throw new InvalidOperationException("Failed to update tree structure schedule settings. Settings not found or operation failed.");
+		}
+		return result;
+	}
+
 	/// <summary>
 	/// Get all available AI models
 	/// </summary>
@@ -189,9 +199,9 @@ public class SettingsUseCase
 			existingModel.LocalPath = localPath;
 			existingModel.IsActive = true;
 			existingModel.UpdatedAt = DateTime.UtcNow;
-			
+
 			await _modelRepository.UpdateModelAsync(existingModel);
-			
+
 			return new AIModelDto
 			{
 				Id = existingModel.Id,
@@ -311,6 +321,16 @@ public class SettingsUseCase
 	public void RefreshTreeStructure()
 	{
 		_settingsService.RefreshTreeStructure();
+	}
+
+    public Task<ModelDetailsResponseDto> SearchAndSaveExternalModelAsync(string modelId)
+    {
+        return _settingsService.SearchAndSaveExternalModelAsync(modelId);
+    }
+
+	public Task RestartServerAsync(string modelType)
+	{
+		return _settingsService.RestartServerAsync(modelType);
 	}
 
 }

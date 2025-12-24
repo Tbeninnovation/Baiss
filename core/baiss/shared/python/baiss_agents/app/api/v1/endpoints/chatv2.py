@@ -14,6 +14,7 @@ import json
 import httpx
 from pydantic import BaseModel
 from baiss_sdk.parsers.json_extractor import JsonExtractor
+from baiss_sdk.parsers.python_extractor import PythonExtractor
 from starlette.websockets import WebSocket, WebSocketDisconnect
 from baiss_agents.app.api.v1.endpoints.files import start_tree_structure_operation_impl
 #from baiss_agents.app.core.config import ai_client
@@ -24,7 +25,7 @@ from baiss_sdk.search.pipeline import SearchPipeline
 import time
 import datetime
 from pathlib import Path
-
+from baiss_sdk.sandbox.python_sandbox import PythonSandbox
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
@@ -321,33 +322,43 @@ async def get_pre_chat(websocket: WebSocket):
             unprocessed_paths = [path for path, exists in existing_paths.items() if not exists]
             if len(unprocessed_paths) > 0:
                 logging.info(f"Starting tree structure operation for unprocessed paths: {unprocessed_paths}")
-                for unprocessed_path in unprocessed_paths:
-                    logging.info(f"Unprocessed path: {unprocessed_path}")
-                    await websocket.send_json({
-                        "success" : True,
-                        "error"   : None,
-                        "response": {
-                            "choices": [{"unprocessed_path": unprocessed_path, "messages": []}]
-                        }
-                        })
-                    tree_structure_result = await start_tree_structure_operation_impl(unprocessed_paths, extensions=["csv", "pdf", "xlsx", "xls", "txt", "docx", "md"], url=url_embedding)
-                    if tree_structure_result.status_code != 200:
+                try:
+                    for unprocessed_path in unprocessed_paths:
+                        logging.info(f"Unprocessed path: {unprocessed_path}")
                         await websocket.send_json({
-                            "status": 400,
-                            "success": False,
-                            "message": str(e),
-                            "error": str(e),
-                            "timestamp": now()
-                        })
-                    else:
-                        await websocket.send_json({
-                            "status": 200,
                             "success" : True,
                             "error"   : None,
                             "response": {
-                                "choices": [{"processed_path": unprocessed_path, "messages": []}]
+                                "choices": [{"unprocessed_path": unprocessed_path, "messages": []}]
                             }
-                        })
+                            })
+                        tree_structure_result = await start_tree_structure_operation_impl(unprocessed_paths, extensions=["csv", "pdf", "xlsx", "xls", "txt", "docx", "md"], url=url_embedding)
+                        if tree_structure_result.status_code != 200:
+                            await websocket.send_json({
+                                "status": 400,
+                                "success": False,
+                                "message": str(e),
+                                "error": str(e),
+                                "timestamp": now()
+                            })
+                        else:
+                            await websocket.send_json({
+                                "status": 200,
+                                "success" : True,
+                                "error"   : None,
+                                "response": {
+                                    "choices": [{"processed_path": unprocessed_path, "messages": []}]
+                                }
+                            })
+                except Exception as e:
+                    logging.error(f"Error during tree structure operation: {e}", exc_info=True)
+                    await websocket.send_json({
+                        "status": 500,
+                        "success": False,
+                        "message": "Error processing unprocessed paths",
+                        "error": str(e),
+                        "timestamp": now()
+                    })
             db_client.disconnect()
 
         #TODO: system prompt should be cached and launched with the API 
@@ -375,7 +386,6 @@ async def get_pre_chat(websocket: WebSocket):
 
         # Prepare the payload for llama server
         payload = {
-            "messages": all_messages,
             "stream": True,
             "reasoning_format": "auto",
             "temperature": 0.3,
@@ -405,8 +415,12 @@ async def get_pre_chat(websocket: WebSocket):
         MAX_ATTEMPTS = 3
         i = 0
         results = []
-        while i < MAX_ATTEMPTS:
+        should_continue = True  # Flag to control loop continuation
+        
+        while i < MAX_ATTEMPTS and should_continue:
+            payload["messages"] = all_messages
             content_buffer = ""
+            should_continue = False  # Reset - only continue if we have more work
 
             # Stream the response from llama server to websocket
             async with httpx.AsyncClient(timeout=300.0) as client:
@@ -441,7 +455,28 @@ async def get_pre_chat(websocket: WebSocket):
                                             content_buffer += content
 
                                 data = convert_stream_chunks(chunk_data)
+                                
+                                # Filter out <code_execution> tags from the response
+                                should_send = True
                                 if data["response"]["choices"]:
+                                    for choice in data["response"]["choices"]:
+                                        for msg in choice.get("messages", []):
+                                            for content_item in msg.get("content", []):
+                                                if content_item.get("type") == "text":
+                                                    text = content_item.get("text", "")
+                                                    # Skip if text contains code_execution tags
+                                                    if "<code_execution>" in text or "</code_execution>" in text:
+                                                        should_send = False
+                                                    # Also filter out the tags from partial matches
+                                                    elif text.strip() in ["<code", "<code_", "<code_e", "<code_ex", 
+                                                                          "<code_exe", "<code_exec", "<code_execu", 
+                                                                          "<code_execut", "<code_executi", "<code_executio",
+                                                                          "<code_execution>", "</code", "</code_", "</code_e", "</code_ex",
+                                                                          "</code_exe", "</code_exec", "</code_execu",
+                                                                          "</code_execut", "</code_executi", "</code_execution>"]:
+                                                        should_send = False
+                                
+                                if data["response"]["choices"] and should_send:
                                     logging.info(f"Streaming chunk: {data}")
                                     await websocket.send_json(data)
                             except json.JSONDecodeError:
@@ -449,6 +484,72 @@ async def get_pre_chat(websocket: WebSocket):
                                 continue
             # to check wash had l3iba khas tkon flkhr ola ndiroha lwst
             extract_tools = JsonExtractor.extract_objects(content_buffer)
+            extract_python = PythonExtractor(content_buffer).functions
+
+            if extract_python:
+                # logging.info(f"Extracted Python functions/classes/methods: {extract_python}")
+
+                for attempts in range(3):
+                    try:
+                        sandbox = PythonSandbox()
+                        sandbox.add_tool_reference(
+                            name="searchlocaldocuments",
+                            module_path="baiss_sdk.tools",
+                            class_name="allTools",
+                            method_name="searchlocaldocuments",
+                            init_kwargs={"url_embedding": url_embedding}
+                        )
+                        code_to_execute = str(extract_python[0]["body"]).rstrip() + "\n\nasyncio.run(main())\n"
+                        logger.info(f"extracted code {code_to_execute}")
+                        exec_result = sandbox.execute(code_to_execute, timeout=30)
+                        # logging.info(f"Sandbox execution result: {exec_result}")
+                        if exec_result.get("success"):
+                            exec_data = exec_result.get("stdout")
+                            if exec_data:
+                                all_messages.append({
+                                    "role": "user",
+                                    "content": f"<code_execution_result>{str(exec_data)}</code_execution_result>"
+                                })
+                            else: 
+                                all_messages.append({
+                                    "role": "user",
+                                    "content": f"The code executed successfully with no result."
+                                })
+
+                            await websocket.send_json({
+                                    "success" : True,
+                                    "error"   : None,
+                                    "response": {
+                                        "code_execution_status": True,
+                                        "error": None
+                                    }
+                                })
+                            should_continue = True
+                            break
+                        else:
+                            exec_error = exec_result.get("error")
+                            # logging.error(f"Sandbox execution error: {exec_error}")
+                            all_messages.append({
+                                "role": "user",
+                                "content": f"<code_execution_result> {exec_error} </code_execution_result>"
+                            })
+
+
+                            await websocket.send_json({
+                                    "success" : True,
+                                    "error"   : None,
+                                    "response": {
+                                        "code_execution_status": False,
+                                        "error": exec_error
+                                    }
+                                })
+                            should_continue = True
+                            time.sleep(1)
+                            break
+                    except Exception as e:
+                        logging.error(f"Sandbox execution error on attempt {attempts + 1}: {e}", exc_info=True)
+                        time.sleep(1)
+
 
             if len(extract_tools) > 0:
                 try:
@@ -470,27 +571,26 @@ async def get_pre_chat(websocket: WebSocket):
                                     "role": "user",
                                     "content": f"<search_results>{str(results)}</search_results>"
                                 })
+                                should_continue = True
                             else:
                                 all_messages.append({
                                     "role": "user",
                                     "content": "<search_results>[]</search_results>"
                                 })
+                                should_continue = True
                         else:
                             logging.info("No search tool found in extracted tools.")
-                            i = MAX_ATTEMPTS
-                            break  # Exit the retry loop if no search tool found
-                except:
+                            # No valid tool, don't continue
+                except Exception as tool_error:
+                    logging.error(f"Error processing tools: {tool_error}")
                     all_messages.append({
                         "role": "user",
                         "content": "<search_results>[]</search_results>"
                     })
-                    continue
-            else:
-                logging.info("No tools extracted from the response.")
-                i = MAX_ATTEMPTS
-                break  # Exit the retry loop if no tools to process
-                    
-        i += 1
+                    should_continue = True
+            # else: no tools/code found, should_continue stays False, loop ends naturally
+            
+            i += 1
         retrieval_end = time.time()
         retrieval_time = retrieval_end - retrieval_start
         if len(results) > 0:

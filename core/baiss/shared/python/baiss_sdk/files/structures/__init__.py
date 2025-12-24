@@ -1,6 +1,5 @@
 import os
 import sys
-from venv import logger
 import baisstools
 baisstools.insert_syspath(__file__, matcher = [r"^baiss_.*$"])
 import tiktoken

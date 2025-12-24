@@ -52,9 +52,8 @@ class BaissUpdater:
             project_root  : str = None,
             target_runtime: str = f"{platform()}-{archname()}",
         ):
-        self._project_root = project_root
-        self._project_root = self.get_project_root()
-        self._project_root   = project_root
+        self._project_root = None
+        self._project_root = project_root if project_root else self.get_project_root()
         self._target_runtime = target_runtime
         self._version        = version
         self._dependencies   = None
@@ -257,6 +256,23 @@ class BaissUpdater:
         """
         extract_dir   : str = self.get_extract_dir()
         project_root  : str = self.get_project_root()
+        
+        # Remove existing python-venv to prevent nesting
+        venv_path = os.path.join(project_root, "python-venv")
+        if os.path.exists(venv_path):
+            shutil.rmtree(venv_path)
+            logger.info(f"Removed existing {venv_path} to prevent nesting")
+        
+        llama_cpp_path = os.path.join(project_root, "llama-cpp")
+        if os.path.exists(llama_cpp_path):
+            shutil.rmtree(llama_cpp_path)
+            logger.info(f"Removed existing {llama_cpp_path} to prevent nesting")
+        
+        baiss_config_path = os.path.join(project_root, "baiss_config.json")
+        if os.path.exists(baiss_config_path):
+            os.remove(baiss_config_path)
+            logger.info(f"Removed existing {baiss_config_path} to prevent conflicts")
+        
         for root, dirs, files in os.walk(extract_dir):
             for file in files:
                 src_file: str = os.path.join(root, file)

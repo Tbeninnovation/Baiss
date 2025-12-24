@@ -14,6 +14,8 @@ public class AvailableModel
 
     public bool IsDownloaded { get; set; } = false;
 
+    public bool IsValid { get; set; } = false;
+
     /// <summary>
     /// Full JSON metadata from HuggingFace API stored as JSONB (JsonDocument)
     /// This includes: model_id, author, model_name, downloads, likes, description, gguf_files, etc.

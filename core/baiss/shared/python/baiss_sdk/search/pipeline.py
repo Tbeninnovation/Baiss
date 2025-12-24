@@ -1,7 +1,6 @@
 import baisstools
 baisstools.insert_syspath(__file__, matcher = [r"^baiss_.*$"])
 
-
 import logging
 from typing import List, Dict, Any
 from baiss_sdk.db.duck_db import DuckDb

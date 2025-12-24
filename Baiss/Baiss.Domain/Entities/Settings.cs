@@ -48,6 +48,11 @@ public class Settings
     /// </summary>
     public string AIModelProviderScope { get; set; } = "local"; // local | hosted | databricks
 
+    public string HuggingfaceApiKey { get; set; } = string.Empty;
+
+    public string TreeStructureSchedule { get; set; } = "0 0 0 * * ?";
+    public bool TreeStructureScheduleEnabled { get; set; } = false;
+
     /// <summary>
     /// Selected AI chat model identifier
     /// </summary>
@@ -68,9 +73,6 @@ public class Settings
     /// Flag to track if the "You're almost set" modal has been shown
     /// </summary>
     public bool HasShownWelcomeModal { get; set; } = false;
-
-    
-
 
 }
 

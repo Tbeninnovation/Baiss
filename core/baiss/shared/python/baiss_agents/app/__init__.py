@@ -1,5 +1,5 @@
 """
-Bedrock API Application Package
+Baiss API Application Package
 """
 
 import os

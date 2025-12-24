@@ -33,6 +33,7 @@ using Baiss.Infrastructure.Extensions;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using System.ComponentModel;
+using ShimSkiaSharp;
 
 
 namespace Baiss.UI
@@ -45,6 +46,7 @@ namespace Baiss.UI
         private List<Process> _llamaCppServerProcesses = new List<Process>();
         private AIProvidersTestService? _aiProvidersTestService;
         private ILogger<App>? _logger;
+        private bool _isCleanedUp = false;
 
         public override void Initialize()
         {
@@ -74,7 +76,8 @@ namespace Baiss.UI
                         QuartzConfiguration.InitializeQuartzDatabase(_logger);
                     }
                     // ! Start python code server
-                    LaunchPythonServer();
+                    var launchPythonService = ServiceProvider?.GetService<ILaunchPythonServerService>();
+                    _pythonServerProcess = launchPythonService?.LaunchPythonServer();
                     LaunchLlamaCppServerAsync();
 
                 }
@@ -92,7 +95,7 @@ namespace Baiss.UI
                 }
 
                 // Start the job scheduler
-                /*_ = Task.Run(async () =>
+                _ = Task.Run(async () =>
                 {
                     try
                     {
@@ -101,8 +104,8 @@ namespace Baiss.UI
                         {
                             await _jobScheduler.StartAsync();
 
-                            // Schedule a sample job to demonstrate functionality
-                            await ScheduleSampleJobs();
+                            // Schedule tree structure update job
+                            await ScheduleTreeStructureUpdateJob();
                         }
                     }
                     catch (Exception ex)
@@ -113,7 +116,7 @@ namespace Baiss.UI
                 });
 
                 // Start the AI Providers test service
-                _ = Task.Run(async () =>
+                /*_ = Task.Run(async () =>
                 {
                     try
                     {
@@ -199,6 +202,7 @@ namespace Baiss.UI
             services.AddTransient<IDialogService, DialogService>();
             services.AddScoped<ITreeStructureService, TreeStructureService>();
             services.AddScoped<ILaunchServerService, LaunchServerService>();
+            services.AddScoped<ILaunchPythonServerService, LaunchPythonServerService>();
             services.AddScoped<IGetLlamaServerService, Baiss.Infrastructure.Services.GetLlamaServerService>();
 
             // Add Semantic Kernel AI services
@@ -269,6 +273,69 @@ namespace Baiss.UI
             }
         }
 
+        private async Task ScheduleTreeStructureUpdateJob()
+        {
+            if (_jobScheduler == null) return;
+
+            try
+            {
+                using var scope = ServiceProvider?.CreateScope();
+                var settingsRepository = scope?.ServiceProvider.GetService<ISettingsRepository>();
+                var modelRepository = scope?.ServiceProvider.GetService<IModelRepository>();
+
+                if (settingsRepository == null) return;
+
+                var settings = await settingsRepository.GetAsync();
+                if (settings != null && settings.TreeStructureScheduleEnabled && !string.IsNullOrEmpty(settings.TreeStructureSchedule))
+                {
+                    bool canSchedule = true;
+
+                    // Validate embedding model
+                    if (string.IsNullOrEmpty(settings.AIEmbeddingModelId))
+                    {
+                        canSchedule = false;
+                        var logger = ServiceProvider?.GetService<ILogger<App>>();
+                        logger?.LogWarning("Skipping tree structure schedule: No embedding model selected.");
+                    }
+                    else if (modelRepository != null)
+                    {
+                        var embeddingModel = await modelRepository.GetModelByIdAsync(settings.AIEmbeddingModelId);
+                        if (embeddingModel == null)
+                        {
+                            canSchedule = false;
+                            var logger = ServiceProvider?.GetService<ILogger<App>>();
+                            logger?.LogWarning("Skipping tree structure schedule: Embedding model {Id} not found in database.", settings.AIEmbeddingModelId);
+                        }
+                        else if (embeddingModel.Type == "local")
+                        {
+                            if (string.IsNullOrEmpty(embeddingModel.LocalPath) || !File.Exists(embeddingModel.LocalPath))
+                            {
+                                canSchedule = false;
+                                var logger = ServiceProvider?.GetService<ILogger<App>>();
+                                logger?.LogWarning("Skipping tree structure schedule: Local embedding model file not found at {Path}.", embeddingModel.LocalPath ?? "null");
+                            }
+                        }
+                    }
+
+                    if (canSchedule)
+                    {
+                        await _jobScheduler.ScheduleRecurringJobAsync<Baiss.Infrastructure.Jobs.UpdateTreeStructureJob>(
+                            "tree-structure-update-job",
+                            settings.TreeStructureSchedule,
+                            null);
+
+                        var logger = ServiceProvider?.GetService<ILogger<App>>();
+                        logger?.LogInformation("Tree structure update job scheduled with cron: {Cron}", settings.TreeStructureSchedule);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var logger = ServiceProvider?.GetService<ILogger<App>>();
+                logger?.LogError(ex, "Failed to schedule tree structure update job");
+            }
+        }
+
         private void EnsureConfigFileExists(IServiceCollection services)
         {
             try
@@ -305,28 +372,66 @@ namespace Baiss.UI
 
         private async void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
         {
+            if (_isCleanedUp)
+            {
+                return;
+            }
+
+            // Cancel the shutdown to allow async cleanup
+            e.Cancel = true;
+
+            // Hide the main window to indicate shutdown is in progress
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.MainWindow?.Hide();
+            }
+
             try
             {
                 var logger = ServiceProvider?.GetService<ILogger<App>>();
                 logger?.LogInformation("Application shutdown requested, cleaning up resources...");
 
                 // Stop the Python server process if it's running
-                if (_pythonServerProcess != null && !_pythonServerProcess.HasExited)
+                try
                 {
-                    try
+                    if (_pythonServerProcess != null)
                     {
-                        logger?.LogInformation("Stopping Python server process...");
-                        _pythonServerProcess.Kill(true);
-                        _pythonServerProcess?.Dispose();
+                        bool isRunning = false;
+                        try
+                        {
+                            isRunning = !_pythonServerProcess.HasExited;
+                        }
+                        catch
+                        {
+                            // Ignore errors checking status (e.g. process not started or already disposed)
+                            isRunning = false;
+                        }
+
+                        if (isRunning)
+                        {
+                            logger?.LogInformation("Stopping Python server process...");
+                            try
+                            {
+                                _pythonServerProcess.Kill(true);
+                            }
+                            catch (Exception killEx)
+                            {
+                                logger?.LogWarning(killEx, "Failed to kill Python process object");
+                            }
+                        }
+
+                        try
+                        {
+                            _pythonServerProcess.Dispose();
+                        }
+                        catch { }
                         _pythonServerProcess = null;
                     }
-                    catch (Exception processEx)
-                    {
-                        logger?.LogWarning(processEx, "Error stopping Python server process");
-                    }
                 }
-
-
+                catch (Exception processEx)
+                {
+                    logger?.LogWarning(processEx, "Error stopping Python server process");
+                }
 
                 // Kill all llama-server processes system-wide (handles any orphaned processes)
                 try
@@ -377,7 +482,6 @@ namespace Baiss.UI
                     Console.WriteLine($"Error killing all llama-server processes: {killAllEx.Message}");
                 }
 
-                // Kill all Python processes system-wide (handles any orphaned Python processes)
                 try
                 {
                     Console.WriteLine("Killing all Python processes on the system...");
@@ -387,7 +491,7 @@ namespace Baiss.UI
                         var killProcess = new ProcessStartInfo
                         {
                             FileName = "/usr/bin/pkill",
-                            Arguments = "-9 -f \".*Python.*run_local.py\"",
+                            Arguments = "-9 -f \"run_local.py\"",
                             CreateNoWindow = true,
                             UseShellExecute = false,
                             RedirectStandardOutput = true,
@@ -514,6 +618,12 @@ namespace Baiss.UI
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
+
+                _isCleanedUp = true;
+                if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+                {
+                    desktopLifetime.Shutdown();
+                }
             }
         }
 
@@ -584,143 +694,6 @@ namespace Baiss.UI
                 _logger?.LogError(ex, "Error launching llama-cpp server: {Message}", ex.Message);
             }
         }
-
-
-        private void ChangePythonDirectoryPermissions(string pythonDirectory)
-        {
-            try
-            {
-                var chmodProcess = new ProcessStartInfo
-                {
-                    FileName = "/bin/chmod",
-                    Arguments = $"-R +x \"{pythonDirectory}\"",
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
-
-                using (var process = Process.Start(chmodProcess))
-                {
-                    if (process != null)
-                    {
-                        process.WaitForExit();
-                        var logger = ServiceProvider?.GetService<ILogger<App>>();
-                        logger?.LogInformation($"Fixed permissions for Python directory: {pythonDirectory}");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                var logger = ServiceProvider?.GetService<ILogger<App>>();
-                logger?.LogError(ex, "Error changing permissions for Python directory: {Message}", ex.Message);
-            }
-        }
-
-        private void LaunchPythonServer()
-        {
-            try
-            {
-                // Path to your Python executable
-                string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                string configFilePath = Path.Combine(appDirectory, "baiss_config.json");
-
-                string jsonString = File.ReadAllText(configFilePath);
-                var config = JsonSerializer.Deserialize<ConfigeDto>(jsonString);
-                ChangePythonDirectoryPermissions(config?.PythonPath);
-
-                string pythonPath;
-                // check if mac or windows
-                if (OperatingSystem.IsMacOS())
-                {
-                    pythonPath = config?.PythonPath + "python3" ?? "python";
-                }
-                else if (OperatingSystem.IsLinux())
-                {
-                    pythonPath = config?.PythonPath + "/python3" ?? "python3";
-                }
-                else if (OperatingSystem.IsWindows())
-                {
-                    pythonPath = config?.PythonPath + "\\python.exe" ?? "python";
-                }
-                else
-                {
-                    pythonPath = "python"; // Default fallback
-                }
-
-                // ! IMPORTANT: Ensure the Python path is correct
-
-                // change path from
-                var baissCorePath = config?.BaissPythonCorePath + "/baiss/shared/python/baiss_agents/run_local.py";
-                if (OperatingSystem.IsWindows())
-                {
-                    baissCorePath = config?.BaissPythonCorePath + "\\baiss\\shared\\python\\baiss_agents\\run_local.py";
-                }
-
-                _logger?.LogInformation($"Using Python executable at:       --- >>>> {pythonPath}");
-                _logger?.LogInformation($"Starting Python server script at: --- >>>> {baissCorePath}");
-
-                var processStartInfo = new ProcessStartInfo
-                {
-                    FileName = pythonPath,
-                    Arguments = $"\"{baissCorePath}\"",
-                    WorkingDirectory = Path.GetDirectoryName(baissCorePath),
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
-
-                _pythonServerProcess = Process.Start(processStartInfo);
-
-                // Attach event handlers for output and error data "logs"
-                if (_pythonServerProcess != null)
-                {
-                    // Capture and log Python output
-                    _pythonServerProcess.OutputDataReceived += (sender, e) =>
-                    {
-                        if (!string.IsNullOrEmpty(e.Data))
-                        {
-                            var logger = ServiceProvider?.GetService<ILogger<App>>();
-                            logger?.LogInformation("Python Output: {Output}", e.Data);
-                        }
-                    };
-
-                    _pythonServerProcess.ErrorDataReceived += (sender, e) =>
-                    {
-                        if (!string.IsNullOrEmpty(e.Data))
-                        {
-                            var logger = ServiceProvider?.GetService<ILogger<App>>();
-                            // Check if it's actually an error or just uvicorn info logs
-                            if (e.Data.Contains("ERROR") || e.Data.Contains("Traceback") || e.Data.Contains("Exception"))
-                            {
-                                logger?.LogError("Python Error: {Error}", e.Data);
-                            }
-                            else
-                            {
-                                logger?.LogInformation("Python Info: {Info}", e.Data);
-                            }
-                        }
-                    };
-
-                    // Start asynchronous reading
-                    _pythonServerProcess.BeginOutputReadLine();
-                    _pythonServerProcess.BeginErrorReadLine();
-                }
-
-                // Log successful startup
-                // Log the standard output and error streams
-                var logger = ServiceProvider?.GetService<ILogger<App>>();
-                logger?.LogInformation($"Python server started with PID: {_pythonServerProcess?.Id}");
-            }
-            catch (Exception ex)
-            {
-                // Handle exceptions (app not found, etc.)
-                var logger = ServiceProvider?.GetService<ILogger<App>>();
-                logger?.LogError(ex, "Error launching Python server: {Message}", ex.Message);
-            }
-        }
-
 
         private void DisableAvaloniaDataAnnotationValidation()
         {

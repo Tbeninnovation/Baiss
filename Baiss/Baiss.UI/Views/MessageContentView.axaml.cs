@@ -3,6 +3,9 @@ using Avalonia.Controls;
 using Markdig;
 using System;
 using System.Text;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using TheArtOfDev.HtmlRenderer.Avalonia;
 
 namespace Baiss.UI.Views
 {
@@ -43,9 +46,60 @@ namespace Baiss.UI.Views
             set => SetValue(IsMineProperty, value);
         }
 
+        public static event Action<MessageContentView?>? GlobalSelectionChanged;
+
+        private HtmlLabel? _htmlLabel;
+
+        public static void ClearAllSelections()
+        {
+            GlobalSelectionChanged?.Invoke(null);
+        }
+
         public MessageContentView()
         {
             InitializeComponent();
+            
+            _htmlLabel = this.FindControl<HtmlLabel>("HtmlControl");
+            if (_htmlLabel != null)
+            {
+                // Detect click/selection start to clear other selections
+                _htmlLabel.AddHandler(PointerPressedEvent, (s, e) =>
+                {
+                    GlobalSelectionChanged?.Invoke(this);
+                }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+            }
+        }
+
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            GlobalSelectionChanged += OnGlobalSelectionChanged;
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            GlobalSelectionChanged -= OnGlobalSelectionChanged;
+            base.OnDetachedFromVisualTree(e);
+        }
+
+        private void OnGlobalSelectionChanged(MessageContentView? sender)
+        {
+            if (sender != this && _htmlLabel != null)
+            {
+                try
+                {
+                    // Attempt to clear selection. Using reflection to be safe if the API method is protected or missing in this version
+                    var method = _htmlLabel.GetType().GetMethod("ClearSelection");
+                    if (method != null)
+                    {
+                        method.Invoke(_htmlLabel, null);
+                    }
+                }
+                catch (Exception)
+                {
+                    // Ignore errors during selection clearing
+                }
+            }
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -146,6 +200,7 @@ namespace Baiss.UI.Views
                                 border-radius: 3px;
                                 color: #CE9178;
                                 font-family: Consolas, 'Courier New', monospace;
+                                font-size: 16px;
                             }}
                             pre {{ 
                                 background-color: #1E1E1E; 
@@ -159,6 +214,7 @@ namespace Baiss.UI.Views
                                 background-color: transparent; 
                                 padding: 0;
                                 color: #D4D4D4;
+                                font-size: 16px;
                             }}
                             a {{ 
                                 color: #4EC9B0;

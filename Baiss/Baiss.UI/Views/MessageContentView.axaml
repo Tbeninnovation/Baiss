@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -5,17 +6,20 @@
              xmlns:views="using:Baiss.UI.Views"
              xmlns:converters="using:Baiss.UI.Converters"
              xmlns:html="clr-namespace:TheArtOfDev.HtmlRenderer.Avalonia;assembly=Avalonia.HtmlRenderer"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d"
+             d:DesignWidth="800"
+             d:DesignHeight="450"
              x:Class="Baiss.UI.Views.MessageContentView"
              x:Name="Root"
              HorizontalAlignment="Stretch">
-    <html:HtmlLabel x:Name="HtmlControl" 
+    <html:HtmlLabel x:Name="HtmlControl"
                     Text="{Binding HtmlContent, ElementName=Root}"
                     Background="Transparent">
         <html:HtmlLabel.MaxWidth>
             <MultiBinding Converter="{x:Static converters:HtmlMaxWidthConverter.Instance}">
                 <Binding Path="$parent[Window].Bounds.Width" />
-                <Binding Path="IsMine" ElementName="Root" />
+                <Binding Path="IsMine"
+                         ElementName="Root" />
             </MultiBinding>
         </html:HtmlLabel.MaxWidth>
     </html:HtmlLabel>

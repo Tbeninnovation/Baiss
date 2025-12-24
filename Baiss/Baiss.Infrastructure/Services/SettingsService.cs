@@ -1,6 +1,7 @@
 using Baiss.Application.DTOs;
 using Baiss.Application.Interfaces;
 using Baiss.Domain.Entities;
+using Baiss.Infrastructure.Jobs;
 // using Baiss.Infrastructure.Interop;
 using DotNetEnv;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,7 @@ public class SettingsService : ISettingsService
     // private readonly IPythonBridgeService _pythonBridgeService;
     private readonly IModelRepository _modelRepository;
     private readonly ILaunchServerService _launchServerService;
+    private readonly IJobSchedulerService _jobSchedulerService;
 
     private CancellationTokenSource _cancellationTokenSource;
 
@@ -36,7 +38,7 @@ public class SettingsService : ISettingsService
 
     private readonly IAvailableModelRepository _availableModelRepository;
 
-    public SettingsService(ISettingsRepository settingsRepository, IExternalApiService externalApiService, ILogger<SettingsService> logger, ITreeStructureService treeStructureService, IModelRepository modelRepository, ILaunchServerService launchServerService, IAvailableModelRepository availableModelRepository, CancellationTokenSource cancellationTokenSource = null, Task thr = null)
+    public SettingsService(ISettingsRepository settingsRepository, IExternalApiService externalApiService, ILogger<SettingsService> logger, ITreeStructureService treeStructureService, IModelRepository modelRepository, ILaunchServerService launchServerService, IAvailableModelRepository availableModelRepository, IJobSchedulerService jobSchedulerService, CancellationTokenSource cancellationTokenSource = null, Task thr = null)
     {
         _settingsRepository = settingsRepository ?? throw new ArgumentNullException(nameof(settingsRepository));
         _externalApiService = externalApiService ?? throw new ArgumentNullException(nameof(externalApiService));
@@ -45,6 +47,7 @@ public class SettingsService : ISettingsService
         _modelRepository = modelRepository ?? throw new ArgumentNullException(nameof(modelRepository));
         _launchServerService = launchServerService ?? throw new ArgumentNullException(nameof(launchServerService));
         _availableModelRepository = availableModelRepository ?? throw new ArgumentNullException(nameof(availableModelRepository));
+        _jobSchedulerService = jobSchedulerService ?? throw new ArgumentNullException(nameof(jobSchedulerService));
         _thr = thr;
         _cancellationTokenSource = cancellationTokenSource ?? new CancellationTokenSource();
         _pauseRequested = false;
@@ -75,6 +78,9 @@ public class SettingsService : ISettingsService
                 AIModelProviderScope = settings.AIModelProviderScope,
                 AIChatModelId = settings.AIChatModelId,
                 AIEmbeddingModelId = settings.AIEmbeddingModelId,
+                HuggingFaceApiKey = settings.HuggingfaceApiKey,
+                TreeStructureSchedule = settings.TreeStructureSchedule,
+                TreeStructureScheduleEnabled = settings.TreeStructureScheduleEnabled,
                 CreatedAt = settings.CreatedAt,
                 UpdatedAt = settings.UpdatedAt
             };
@@ -223,6 +229,47 @@ public class SettingsService : ISettingsService
         catch (Exception ex)
         {
             throw new InvalidOperationException($"Error retrieving settings: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<SettingsDto?> UpdateTreeStructureScheduleAsync(UpdateTreeStructureScheduleDto scheduleDto)
+    {
+        try
+        {
+            var settings = await _settingsRepository.GetAsync();
+            if (settings == null) return null;
+
+            settings.TreeStructureSchedule = scheduleDto.Schedule;
+            settings.TreeStructureScheduleEnabled = scheduleDto.Enabled;
+            settings.UpdatedAt = DateTime.UtcNow;
+
+            await _settingsRepository.SaveAsync(settings);
+
+            // Update the running job
+            if (scheduleDto.Enabled)
+            {
+                // Cancel existing job first to be safe
+                await _jobSchedulerService.CancelJobAsync("tree-structure-update-job");
+
+                // Schedule with new cron expression
+                await _jobSchedulerService.ScheduleRecurringJobAsync<UpdateTreeStructureJob>(
+                    "tree-structure-update-job",
+                    scheduleDto.Schedule
+                );
+                _logger.LogInformation("Rescheduled tree structure update job with cron: {Cron}", scheduleDto.Schedule);
+            }
+            else
+            {
+                await _jobSchedulerService.CancelJobAsync("tree-structure-update-job");
+                _logger.LogInformation("Cancelled tree structure update job");
+            }
+
+            return MapToDto(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating tree structure schedule settings");
+            return null;
         }
     }
 
@@ -541,6 +588,11 @@ public class SettingsService : ISettingsService
                 _logger.LogInformation("Embedding model ID {Action}: {Value}", string.IsNullOrEmpty(settings.AIEmbeddingModelId) ? "cleared" : (oldEmb == settings.AIEmbeddingModelId ? "unchanged" : "updated"), settings.AIEmbeddingModelId);
             }
 
+            if (aiModelDto.HuggingFaceApiKey != null)
+            {
+                settings.HuggingfaceApiKey = aiModelDto.HuggingFaceApiKey;
+            }
+
 
             settings.UpdatedAt = DateTime.UtcNow;
 
@@ -595,7 +647,7 @@ public class SettingsService : ISettingsService
                 {
                     try
                     {
-                        _logger.LogInformation("Restarting llama-cpp server with new chat model: {ModelId}", settings.AIEmbeddingModelId);
+                        _logger.LogInformation("Restarting llama-cpp server with new embedding model: {ModelId}", settings.AIEmbeddingModelId);
 
                         // Stop existing server if running using the centralized method
                         _logger.LogInformation("Stopping existing llama-cpp server process");
@@ -608,7 +660,7 @@ public class SettingsService : ISettingsService
                             _logger.LogInformation("Launching llama-cpp server with model path: {ModelPath}", modelPath);
 
                             // Launch new server with the updated model
-                            var newProcess = await _launchServerService.LaunchLlamaCppServerAsync("embedding", modelPath);
+                            var newProcess = await _launchServerService.LaunchLlamaCppServerAsync("embedding", modelPath, "--embeddings");
                             if (newProcess != null)
                             {
                                 _logger.LogInformation("llama-cpp server restarted successfully with new model");
@@ -891,6 +943,7 @@ public class SettingsService : ISettingsService
                 {
                     Id = m.ModelId,
                     IsDownloaded = isDownloaded,
+                    IsValid = true,
                     Metadata = JsonDocument.Parse(jsonString), // Store as JsonDocument
                     UpdatedAt = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow
@@ -909,7 +962,7 @@ public class SettingsService : ISettingsService
                 var apiModelIds = models.Select(m => m.ModelId).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
                 var modelsToDelete = savedModels
-                    .Where(dbModel => !apiModelIds.Contains(dbModel.Id) && !dbModel.IsDownloaded)
+                    .Where(dbModel => !apiModelIds.Contains(dbModel.Id) && !dbModel.IsDownloaded && dbModel.IsValid)
                     .ToList();
 
                 if (modelsToDelete.Any())
@@ -961,8 +1014,9 @@ public class SettingsService : ISettingsService
                     }
 
                     // Add downloaded models that are not in API response at the top
+                    // Also include manually added models (IsValid = false) that are not in the API response
                     var modelsNotInApi = savedModels
-                        .Where(m => !apiModelIds.Contains(m.Id) && m.IsDownloaded)
+                        .Where(m => !apiModelIds.Contains(m.Id) && (m.IsDownloaded || !m.IsValid))
                         .OrderBy(m => m.CreatedAt)
                         .Select(m =>
                         {
@@ -978,6 +1032,7 @@ public class SettingsService : ISettingsService
                             }
                         })
                         .Where(m => m != null)
+                        .Select(m => m!)
                         .ToList();
 
                     // Combine: downloaded models not in API first, then models from API (in API order)
@@ -1022,6 +1077,7 @@ public class SettingsService : ISettingsService
                             }
                         })
                         .Where(m => m != null)
+                        .Select(m => m!)
                         .ToList();
 
                     return modelInfoList;
@@ -1178,6 +1234,36 @@ public class SettingsService : ISettingsService
             //     }
             // }
 
+            // Step 3: Check settings and remove models if they don't exist in external API
+            var settings = await _settingsRepository.GetAsync();
+            if (settings != null && settings.AIModelType == ModelTypes.Local)
+            {
+                bool settingsChanged = false;
+
+                // Check AIChatModelId
+                if (!string.IsNullOrEmpty(settings.AIChatModelId) && !externalModelIds.Contains(settings.AIChatModelId))
+                {
+                    _logger.LogInformation("Removing AIChatModelId '{ModelId}' from settings as it no longer exists in external API", settings.AIChatModelId);
+                    settings.AIChatModelId = string.Empty;
+                    settingsChanged = true;
+                }
+
+                // Check AIEmbeddingModelId
+                if (!string.IsNullOrEmpty(settings.AIEmbeddingModelId) && !externalModelIds.Contains(settings.AIEmbeddingModelId))
+                {
+                    _logger.LogInformation("Removing AIEmbeddingModelId '{ModelId}' from settings as it no longer exists in external API", settings.AIEmbeddingModelId);
+                    settings.AIEmbeddingModelId = string.Empty;
+                    settingsChanged = true;
+                }
+
+                if (settingsChanged)
+                {
+                    settings.UpdatedAt = DateTime.UtcNow;
+                    await _settingsRepository.SaveAsync(settings);
+                    _logger.LogInformation("Settings updated after model synchronization");
+                }
+            }
+
             _logger.LogInformation("Database synchronization with external API completed successfully");
         }
         catch (Exception ex)
@@ -1309,4 +1395,145 @@ public class SettingsService : ISettingsService
         return _externalApiService.GetModelInfoAsync(modelId);
     }
 
+    public async Task RestartServerAsync(string modelType)
+    {
+        var settings = await _settingsRepository.GetAsync();
+        if (settings == null) return;
+
+        string? modelId = modelType == "chat" ? settings.AIChatModelId : settings.AIEmbeddingModelId;
+        if (string.IsNullOrEmpty(modelId)) return;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                _logger.LogInformation("Restarting llama-cpp server for {ModelType} with model: {ModelId}", modelType, modelId);
+
+                await _launchServerService.StopServerByTypeAsync(modelType);
+
+                var modelPath = await _modelRepository.GetPathByModelIdAsync(modelId);
+                if (!string.IsNullOrEmpty(modelPath) && File.Exists(modelPath))
+                {
+                    await _launchServerService.LaunchLlamaCppServerAsync(modelType, modelPath);
+                }
+                else
+                {
+                    _logger.LogWarning("Cannot restart server: Model path not found or file does not exist for model: {ModelId}", modelId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error restarting llama-cpp server for {ModelType}", modelType);
+            }
+        });
+    }
+
+    private async Task<string?> GetHuggingFaceApiKeyAsync()
+    {
+        var settings = await _settingsRepository.GetAsync();
+        return settings?.HuggingfaceApiKey ?? null;
+    }
+
+    public async Task<ModelDetailsResponseDto> SearchAndSaveExternalModelAsync(string modelId)
+    {
+        try
+        {
+            var token = await GetHuggingFaceApiKeyAsync();
+
+            var response = await _externalApiService.GetExternalModelDetailsAsync(modelId, token);
+            if (!response.Success || response.Data == null) return response;
+
+            JsonElement rootElement;
+            if (response.Data is JsonElement element)
+            {
+                rootElement = element;
+            }
+            else
+            {
+                try
+                {
+                    var json = JsonSerializer.Serialize(response.Data);
+                    using var doc = JsonDocument.Parse(json);
+                    rootElement = doc.RootElement.Clone();
+                }
+                catch
+                {
+                    return new ModelDetailsResponseDto { Success = false, Error = "Failed to parse model data" };
+                }
+            }
+
+            bool savedAny = false;
+
+            // Handle Array of models
+            if (rootElement.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in rootElement.EnumerateArray())
+                {
+                    if (await SaveModelFromElement(item))
+                    {
+                        savedAny = true;
+                    }
+                }
+            }
+            // Handle Single Object
+            else if (rootElement.ValueKind == JsonValueKind.Object)
+            {
+                if (await SaveModelFromElement(rootElement))
+                {
+                    savedAny = true;
+                }
+            }
+
+            if (savedAny)
+            {
+                return new ModelDetailsResponseDto { Success = true, Message = "Model saved successfully" };
+            }
+            else
+            {
+                return new ModelDetailsResponseDto { Success = false, Error = "Model found but failed to save (might already exist)" };
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching and saving external model {ModelId}", modelId);
+            return new ModelDetailsResponseDto { Success = false, Error = ex.Message };
+        }
+    }
+
+    private async Task<bool> SaveModelFromElement(JsonElement element)
+    {
+        try
+        {
+            if (!element.TryGetProperty("model_id", out var idProp)) return false;
+            var id = idProp.GetString();
+            if (string.IsNullOrEmpty(id)) return false;
+
+            var existingModel = await _availableModelRepository.GetByIdAsync(id);
+
+            var availableModel = new AvailableModel
+            {
+                Id = id,
+                IsDownloaded = existingModel?.IsDownloaded ?? false,
+                IsValid = existingModel?.IsValid ?? false,
+                Metadata = JsonDocument.Parse(element.GetRawText()),
+                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = existingModel?.CreatedAt ?? DateTime.UtcNow
+            };
+
+            if (existingModel != null)
+            {
+                await _availableModelRepository.UpdateAsync(availableModel);
+            }
+            else
+            {
+                await _availableModelRepository.AddAsync(availableModel);
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving model element");
+            return false;
+        }
+    }
 }

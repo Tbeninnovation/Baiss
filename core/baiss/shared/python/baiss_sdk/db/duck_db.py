@@ -506,16 +506,29 @@ class DuckDb(BaseDb):
         
         try:
             # Check if FTS index already exists
+            index_exists = False
             try:
                 self.connection.execute("SELECT 1 FROM fts_main_BaissChunks.docs LIMIT 1;")
-                if not force_recreate:
-                    logging.info("FTS index already exists")
-                    return
+                index_exists = True
             except:
                 pass  # Index doesn't exist
+
+            if index_exists and not force_recreate:
+                # Validate the index works with the current DuckDB version
+                try:
+                    # Try a dummy BM25 search to ensure macro and table references are correct
+                    self.connection.execute("SELECT fts_main_BaissChunks.match_bm25(id, 'test', fields := 'chunk_content') FROM BaissChunks LIMIT 1;")
+                    logging.info("FTS index already exists and is valid")
+                    return
+                except Exception as e:
+                    logging.warning(f"FTS index exists but validation failed: {e}. Recreating index...")
+                    force_recreate = True
             
             if force_recreate:
-                self.connection.execute("PRAGMA drop_fts_index('BaissChunks');")
+                try:
+                    self.connection.execute("PRAGMA drop_fts_index('BaissChunks');")
+                except Exception as e:
+                    logging.warning(f"Failed to drop FTS index during recreation: {e}")
             
             # Create FTS index on chunk_content
             self.connection.execute("""

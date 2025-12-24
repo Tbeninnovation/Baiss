@@ -27,7 +27,7 @@ public class AvailableModelRepository : IAvailableModelRepository
             using var connection = await _connectionFactory.CreateConnectionAsync();
 
             const string sql = @"
-                SELECT Id, IsDownloaded, Metadata, UpdatedAt, CreatedAt
+                SELECT Id, IsDownloaded, IsValid, Metadata, UpdatedAt, CreatedAt
                 FROM AvailableModels
                 ORDER BY Id";
 
@@ -50,7 +50,7 @@ public class AvailableModelRepository : IAvailableModelRepository
             using var connection = await _connectionFactory.CreateConnectionAsync();
 
             const string sql = @"
-                SELECT Id, IsDownloaded, Metadata, UpdatedAt, CreatedAt
+                SELECT Id, IsDownloaded, IsValid, Metadata, UpdatedAt, CreatedAt
                 FROM AvailableModels
                 WHERE Id = @Id";
 
@@ -72,8 +72,8 @@ public class AvailableModelRepository : IAvailableModelRepository
             using var connection = await _connectionFactory.CreateConnectionAsync();
 
             const string sql = @"
-                INSERT INTO AvailableModels (Id, IsDownloaded, Metadata, CreatedAt, UpdatedAt)
-                VALUES (@Id, @IsDownloaded, @Metadata, @CreatedAt, @UpdatedAt)";
+                INSERT INTO AvailableModels (Id, IsDownloaded, IsValid, Metadata, CreatedAt, UpdatedAt)
+                VALUES (@Id, @IsDownloaded, @IsValid, @Metadata, @CreatedAt, @UpdatedAt)";
 
             model.CreatedAt = DateTime.UtcNow;
             model.UpdatedAt = DateTime.UtcNow;
@@ -99,6 +99,7 @@ public class AvailableModelRepository : IAvailableModelRepository
             const string sql = @"
                 UPDATE AvailableModels
                 SET IsDownloaded = @IsDownloaded,
+                    IsValid = @IsValid,
                     Metadata = @Metadata,
                     UpdatedAt = @UpdatedAt
                 WHERE Id = @Id";
@@ -124,10 +125,11 @@ public class AvailableModelRepository : IAvailableModelRepository
             using var connection = await _connectionFactory.CreateConnectionAsync();
 
             const string sql = @"
-                INSERT INTO AvailableModels (Id, IsDownloaded, Metadata, CreatedAt, UpdatedAt)
-                VALUES (@Id, @IsDownloaded, @Metadata, @CreatedAt, @UpdatedAt)
+                INSERT INTO AvailableModels (Id, IsDownloaded, IsValid, Metadata, CreatedAt, UpdatedAt)
+                VALUES (@Id, @IsDownloaded, @IsValid, @Metadata, @CreatedAt, @UpdatedAt)
                 ON CONFLICT(Id) DO UPDATE SET
                     IsDownloaded = excluded.IsDownloaded,
+                    IsValid = excluded.IsValid,
                     Metadata = excluded.Metadata,
                     UpdatedAt = excluded.UpdatedAt";
 

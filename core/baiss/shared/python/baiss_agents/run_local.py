@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Local development server for Bedrock API
+Local development server for Baiss API
 Run this script to test the FastAPI application locally
 """
 
@@ -12,6 +12,7 @@ import sys
 import platform
 import signal
 import subprocess
+import argparse
 
 # Add the parent directories to Python path to allow imports
 current_dir = Path(__file__).parent.absolute()
@@ -116,12 +117,17 @@ def kill_process_using_port(port):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Run the Baiss API server locally")
+    parser.add_argument("--port", type=int, default=8000, help="Port to run the server on")
+    parser.add_argument("--reload", action="store_true", help="Enable auto-reload")
+    args = parser.parse_args()
+
     # Set the current working directory to the script's directory
     os.chdir(current_dir)
 
-    port = 8000
+    port = args.port
     # Kill any process using the port
-    kill_process_using_port(port)
+    # kill_process_using_port(port)
     logging.info(f"Starting FastAPI server on port {port}...")
 
     # Run the FastAPI application
@@ -129,7 +135,7 @@ def main():
         "app.main:app",
         host="0.0.0.0",
         port=port,
-        reload=True
+        reload=args.reload
     )
 
 if __name__ == "__main__":

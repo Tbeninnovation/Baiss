@@ -401,13 +401,7 @@ public partial class MainWindow : Window
         ScrollToBottom();
     }
 
-    private void Root_PointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-        {
-            BeginMoveDrag(e);
-        }
-    }
+
 
     private void FloatingButton_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -531,6 +525,27 @@ public partial class MainWindow : Window
                 }
             }
         }
+    }
+
+    private void OnRootPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            BeginMoveDrag(e);
+        }
+    }
+
+    private void OnContentAreaPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        // Attempt to clear selection/focus by focusing the main window
+        this.Focus();
+        MessageContentView.ClearAllSelections();
+    }
+
+    private void OnTitleBarButtonPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        // Prevent the drag handler (OnRootPointerPressed) from seeing this event
+        e.Handled = true;
     }
 
     private void OnComboBoxPointerPressed(object? sender, PointerPressedEventArgs e)
