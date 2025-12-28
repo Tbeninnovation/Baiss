@@ -208,3 +208,7 @@ __marimo__/
 core/.DS_Store
 local-data/
 .vscode/
+baiss.installer/app/assets/zip/baiss-desktop-1.0.0-osx-arm64.zip
+baiss.installer/app/assets/zip/.DS_Store
+baiss.installer/app/assets/.DS_Store
+baiss.installer/app/assets/ico/python-3.15.5-win-x64.zip
