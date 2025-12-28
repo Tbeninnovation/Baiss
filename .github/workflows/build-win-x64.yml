@@ -1,0 +1,49 @@
+name: Build Windows X64 (Only)
+
+on:
+  workflow_dispatch:
+
+env:
+  IS_GITHUB_ACTIONS: true
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  BAISS_P12_BASE64: ${{ secrets.BAISS_P12_BASE64 }}
+  BAISS_P12_PASS: ${{ secrets.BAISS_P12_PASS }}
+  BAISS_KEYCHAIN_FILE: ${{ secrets.BAISS_KEYCHAIN_FILE }}
+  BAISS_KEYCHAIN_PASS: ${{ secrets.BAISS_KEYCHAIN_PASS }}
+
+jobs:
+  build-deploy:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install Requirements
+        run: |
+          python3 -m pip install Pillow
+          python3 -m pip install certifi
+          python3 -m pip install pyinstaller
+          python3 -m pip install python-dotenv
+          python3 -m pip install pywin32
+
+      - name: Build Python Environment
+        run: |
+          python3 scripts/build_python.py win-x64
+
+      - name: Build Publisher
+        run: |
+          python3 scripts/build.py --target-runtime=win-x64
+
+      - name: Build Baiss Setup Wizard
+        run: |
+          python3 scripts/baiss_setup_wizard_builder.py --target-runtime=win-x64
+      
+      - name: Deploy
+        run: |
+          python3 scripts/deploy.py

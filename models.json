@@ -1,0 +1,374 @@
+[
+    {
+        "model_id": "Qwen/Qwen3-Embedding-0.6B-GGUF",
+        "author": "Qwen",
+        "model_name": "Qwen3-Embedding-0.6B-GGUF",
+        "downloads": 18659,
+        "likes": 465,
+        "description": "This is an Embedding model, you must download it to activate the search tool.",
+        "purpose": "embedding",
+        "gguf_files": [
+            {
+                "filename": "Qwen3-Embedding-0.6B-Q8_0.gguf",
+                "size": 639150592,
+                "size_formatted": "609.54 MB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B-GGUF/resolve/main/Qwen3-Embedding-0.6B-Q8_0.gguf"
+            },
+            {
+                "filename": "Qwen3-Embedding-0.6B-f16.gguf",
+                "size": 1197629632,
+                "default": true,
+                "size_formatted": "1.12 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B-GGUF/resolve/main/Qwen3-Embedding-0.6B-f16.gguf"
+            }
+        ]
+    },
+    {
+        "model_id": "Qwen/Qwen3-0.6B-GGUF",
+        "author": "Qwen",
+        "model_name": "Qwen3-0.6B-GGUF",
+        "downloads": 10159,
+        "likes": 36,
+        "description": "This is a chat model.",
+        "purpose": "chat",
+        "gguf_files": [
+            {
+                "filename": "Qwen3-0.6B-Q8_0.gguf",
+                "default": true,
+                "size": 639446688,
+                "size_formatted": "609.82 MB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q8_0.gguf"
+            }
+        ]
+    },
+    {
+        "model_id": "Qwen/Qwen3-1.7B-GGUF",
+        "author": "Qwen",
+        "model_name": "Qwen3-1.7B-GGUF",
+        "downloads": 6670,
+        "likes": 25,
+        "description": "",
+        "purpose": "chat",
+        "gguf_files": [
+            {
+                "filename": "Qwen3-1.7B-Q8_0.gguf",
+                "default": true,
+                "size": 1834426016,
+                "size_formatted": "1.71 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q8_0.gguf"
+            }
+        ]
+    },
+    {
+        "model_id": "Qwen/Qwen3-4B-GGUF",
+        "author": "Qwen",
+        "model_name": "Qwen3-4B-GGUF",
+        "downloads": 9141,
+        "likes": 36,
+        "description": "",
+        "purpose": "chat",
+        "gguf_files": [
+            {
+                "filename": "Qwen3-4B-Q4_K_M.gguf",
+                "size": 2497280256,
+                "size_formatted": "2.33 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q4_K_M.gguf"
+            },
+            {
+                "filename": "Qwen3-4B-Q5_0.gguf",
+                "size": 2823710976,
+                "size_formatted": "2.63 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q5_0.gguf"
+            },
+            {
+                "filename": "Qwen3-4B-Q5_K_M.gguf",
+                "size": 2889513184,
+                "size_formatted": "2.69 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q5_K_M.gguf"
+            },
+            {
+                "filename": "Qwen3-4B-Q6_K.gguf",
+                "default": true,
+                "size": 3306260704,
+                "size_formatted": "3.08 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q6_K.gguf"
+            },
+            {
+                "filename": "Qwen3-4B-Q8_0.gguf",
+                "size": 4280404704,
+                "size_formatted": "3.99 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q8_0.gguf"
+            }
+        ]
+    },
+    {
+        "model_id": "unsloth/Qwen3-VL-4B-Instruct-GGUF",
+        "author": "unsloth",
+        "model_name": "Qwen3-VL-4B-Instruct-GGUF",
+        "downloads": 35754,
+        "likes": 19,
+        "description": "",
+        "purpose": "chat",
+        "gguf_files": [
+            {
+                "filename": "Qwen3-VL-4B-Instruct-BF16.gguf",
+                "size": 8051286560,
+                "size_formatted": "7.50 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-BF16.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-IQ4_NL.gguf",
+                "default": true,
+                "size": 2381345056,
+                "size_formatted": "2.22 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-IQ4_NL.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-IQ4_XS.gguf",
+                "size": 2270753056,
+                "size_formatted": "2.11 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-IQ4_XS.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-Q2_K.gguf",
+                "size": 1669501216,
+                "size_formatted": "1.55 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-Q2_K.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-Q2_K_L.gguf",
+                "size": 1669501216,
+                "size_formatted": "1.55 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-Q2_K_L.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-Q3_K_M.gguf",
+                "size": 2075619616,
+                "size_formatted": "1.93 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-Q3_K_M.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-Q3_K_S.gguf",
+                "size": 1886998816,
+                "size_formatted": "1.76 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-Q3_K_S.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-Q4_0.gguf",
+                "size": 2375774496,
+                "size_formatted": "2.21 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-Q4_0.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-Q4_1.gguf",
+                "size": 2596630816,
+                "size_formatted": "2.42 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-Q4_1.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-Q4_K_M.gguf",
+                "size": 2497282336,
+                "size_formatted": "2.33 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-Q4_K_M.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-Q4_K_S.gguf",
+                "size": 2383311136,
+                "size_formatted": "2.22 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-Q4_K_S.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-Q5_K_M.gguf",
+                "size": 2889515296,
+                "size_formatted": "2.69 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-Q5_K_M.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-Q5_K_S.gguf",
+                "size": 2823713056,
+                "size_formatted": "2.63 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-Q5_K_S.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-Q6_K.gguf",
+                "size": 3306262816,
+                "size_formatted": "3.08 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-Q6_K.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-Q8_0.gguf",
+                "size": 4280406816,
+                "size_formatted": "3.99 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-Q8_0.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-UD-IQ1_M.gguf",
+                "size": 1143485216,
+                "size_formatted": "1.06 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-UD-IQ1_M.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-UD-IQ1_S.gguf",
+                "size": 1083151136,
+                "size_formatted": "1.01 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-UD-IQ1_S.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-UD-IQ2_M.gguf",
+                "size": 1530403616,
+                "size_formatted": "1.43 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-UD-IQ2_M.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-UD-IQ2_XXS.gguf",
+                "size": 1255346976,
+                "size_formatted": "1.17 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-UD-IQ2_XXS.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-UD-IQ3_XXS.gguf",
+                "size": 1674378016,
+                "size_formatted": "1.56 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-UD-IQ3_XXS.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-UD-Q2_K_XL.gguf",
+                "size": 1695725856,
+                "size_formatted": "1.58 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-UD-Q2_K_XL.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-UD-Q3_K_XL.gguf",
+                "size": 2128386336,
+                "size_formatted": "1.98 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-UD-Q3_K_XL.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-UD-Q4_K_XL.gguf",
+                "size": 2546342176,
+                "size_formatted": "2.37 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-UD-Q4_K_XL.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-UD-Q5_K_XL.gguf",
+                "size": 2899222816,
+                "size_formatted": "2.70 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-UD-Q5_K_XL.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-UD-Q6_K_XL.gguf",
+                "size": 3658224416,
+                "size_formatted": "3.41 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-UD-Q6_K_XL.gguf"
+            },
+            {
+                "filename": "Qwen3-VL-4B-Instruct-UD-Q8_K_XL.gguf",
+                "size": 5056701216,
+                "size_formatted": "4.71 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3-VL-4B-Instruct-UD-Q8_K_XL.gguf"
+            },
+            {
+                "filename": "mmproj-BF16.gguf",
+                "size": 839326368,
+                "size_formatted": "800.44 MB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/mmproj-BF16.gguf"
+            },
+            {
+                "filename": "mmproj-F16.gguf",
+                "size": 836180640,
+                "size_formatted": "797.44 MB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/mmproj-F16.gguf"
+            },
+            {
+                "filename": "mmproj-F32.gguf",
+                "size": 1661409952,
+                "size_formatted": "1.55 GB",
+                "download_url": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF/resolve/main/mmproj-F32.gguf"
+            }
+        ]
+    },
+    {
+        "model_id": "Qwen/Qwen3-8B-GGUF",
+        "author": "Qwen",
+        "model_name": "Qwen3-8B-GGUF",
+        "downloads": 64870,
+        "likes": 70,
+        "description": "",
+        "purpose": "chat",
+        "gguf_files": [
+            {
+                "filename": "Qwen3-8B-Q4_K_M.gguf",
+                "size": 5027783488,
+                "size_formatted": "4.68 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-8B-GGUF/resolve/main/Qwen3-8B-Q4_K_M.gguf"
+            },
+            {
+                "filename": "Qwen3-8B-Q5_0.gguf",
+                "size": 5720761152,
+                "size_formatted": "5.33 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-8B-GGUF/resolve/main/Qwen3-8B-Q5_0.gguf"
+            },
+            {
+                "filename": "Qwen3-8B-Q5_K_M.gguf",
+                "size": 5851112224,
+                "default": true,
+                "size_formatted": "5.45 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-8B-GGUF/resolve/main/Qwen3-8B-Q5_K_M.gguf"
+            },
+            {
+                "filename": "Qwen3-8B-Q6_K.gguf",
+                "size": 6725899040,
+                "size_formatted": "6.26 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-8B-GGUF/resolve/main/Qwen3-8B-Q6_K.gguf"
+            },
+            {
+                "filename": "Qwen3-8B-Q8_0.gguf",
+                "size": 8709518112,
+                "size_formatted": "8.11 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-8B-GGUF/resolve/main/Qwen3-8B-Q8_0.gguf"
+            }
+        ]
+    },
+    {
+        "model_id": "Qwen/Qwen3-14B-GGUF",
+        "author": "Qwen",
+        "model_name": "Qwen3-14B-GGUF",
+        "downloads": 10398,
+        "likes": 52,
+        "description": "",
+        "purpose": "chat",
+        "gguf_files": [
+            {
+                "filename": "Qwen3-14B-Q4_K_M.gguf",
+                "size": 9001752960,
+                "size_formatted": "8.38 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-14B-GGUF/resolve/main/Qwen3-14B-Q4_K_M.gguf"
+            },
+            {
+                "filename": "Qwen3-14B-Q5_0.gguf",
+                "size": 10263894400,
+                "size_formatted": "9.56 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-14B-GGUF/resolve/main/Qwen3-14B-Q5_0.gguf"
+            },
+            {
+                "filename": "Qwen3-14B-Q5_K_M.gguf",
+                "size": 10514569568,
+                "size_formatted": "9.79 GB",
+                "default": true,
+                "download_url": "https://huggingface.co/Qwen/Qwen3-14B-GGUF/resolve/main/Qwen3-14B-Q5_K_M.gguf"
+            },
+            {
+                "filename": "Qwen3-14B-Q6_K.gguf",
+                "size": 12121937248,
+                "size_formatted": "11.29 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-14B-GGUF/resolve/main/Qwen3-14B-Q6_K.gguf"
+            },
+            {
+                "filename": "Qwen3-14B-Q8_0.gguf",
+                "size": 15698533728,
+                "size_formatted": "14.62 GB",
+                "download_url": "https://huggingface.co/Qwen/Qwen3-14B-GGUF/resolve/main/Qwen3-14B-Q8_0.gguf"
+            }
+        ]
+    }
+]

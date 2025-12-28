@@ -1,0 +1,62 @@
+name: Build OSX X64 (Only)
+
+on:
+  workflow_dispatch:
+
+env:
+  IS_GITHUB_ACTIONS: true
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  BAISS_P12_BASE64: ${{ secrets.BAISS_P12_BASE64 }}
+  BAISS_P12_PASS: ${{ secrets.BAISS_P12_PASS }}
+  BAISS_KEYCHAIN_FILE: ${{ secrets.BAISS_KEYCHAIN_FILE }}
+  BAISS_KEYCHAIN_PASS: ${{ secrets.BAISS_KEYCHAIN_PASS }}
+  APPLE_ID: ${{ secrets.APPLE_ID }}
+  TEAM_ID: ${{ secrets.TEAM_ID }}
+  PASSWORD: ${{ secrets.PASSWORD }}
+
+jobs:
+  build-deploy:
+    runs-on: macos-15-intel
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install Requirements
+        run: |
+          python3 -m pip install Pillow
+          python3 -m pip install certifi
+          python3 -m pip install pyinstaller
+          python3 -m pip install python-dotenv
+
+      - name: Check disk space before DMG creation
+        run: |
+          echo "=== /tmp space ==="
+          df -h /tmp
+          echo "=== /var/tmp space ==="
+          df -h /var/tmp
+          echo "=== Current directory space ==="
+          df -h .
+          echo "=== root space ==="
+          df -h /
+
+      - name: Build Python Environment
+        run: |
+          python3 scripts/build_python.py osx-x64
+
+      - name: Build Publisher
+        run: |
+          python3 scripts/build.py --target-runtime=osx-x64
+
+      - name: Build Baiss Setup Wizard
+        run: |
+          python3 scripts/baiss_setup_wizard_builder.py --target-runtime=osx-x64
+
+      - name: Deploy
+        run: |
+          python3 scripts/deploy.py
