@@ -25,9 +25,28 @@
 https://github.com/user-attachments/assets/0b36d021-e2d8-4410-9cfd-67019821169d
 
 
+## Download Baiss Desktop App
 
+### Latest Release (v0.0.9)
 
----
+Choose the appropriate version for your system:
+
+**macOS**
+- [Download for Apple Silicon (M1/M2/M3/M4)](https://github.com/Tbeninnovation/Baiss/releases/download/0.0.9/baiss-setup-0.0.9-osx-arm64.dmg) - ARM64
+- [Download for Intel Mac](https://github.com/Tbeninnovation/Baiss/releases/download/0.0.9/baiss-setup-0.0.9-osx-x64.dmg) - x64
+
+**Windows**
+- [Download for Windows](https://github.com/Tbeninnovation/Baiss/releases/download/0.0.9/baiss-setup-0.0.9-win-x64.exe) - x64
+  
+  *Note: Windows SmartScreen may show a warning as we're awaiting code signing approval. The app is safe to install.*
+
+**Not sure which version?**
+- Mac users: If you bought your Mac in 2020 or later, choose Apple Silicon. Otherwise, choose Intel.
+- Windows users: Most modern Windows PCs use x64 architecture.
+
+[View all releases](https://github.com/Tbeninnovation/Baiss/releases)
+
+*Note: Beta releases are experimental builds from our dev branch. We don't recommend using beta versions unless you're a developer who wants to test new features or debug issues. Beta releases may be unstable and contain bugs.*
 
 ## Why Baiss?
 
@@ -108,6 +127,8 @@ Baiss/
         ├── requirements.txt
         └── shared/python/baiss_agents/
 ```
+## About releases
+
 
 ## Contributing
 
