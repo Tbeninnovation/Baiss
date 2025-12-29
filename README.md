@@ -20,7 +20,12 @@
 
 </div>
 
+## Quick Demo
 
+![Baiss Demo](assets/baiss.gif)
+
+
+## Full Demo
 
 https://github.com/user-attachments/assets/0b36d021-e2d8-4410-9cfd-67019821169d
 
