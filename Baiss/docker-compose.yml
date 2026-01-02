@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  baiss-build:
+    build:
+      context: .
+      dockerfile: Dockerfile.buildenv
+    container_name: baiss-build
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    command: bash
+    stdin_open: true
+    tty: true
+
+  baiss-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: baiss-app
+    environment:
+      DOTNET_CLI_HOME: /home/baiss/.dotnet
+      DISPLAY: $DISPLAY
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - baiss-data:/home/baiss/.local/share/baiss
+    ports:
+      - "127.0.0.1:5000:5000"
+    restart: unless-stopped
+
+volumes:
+  baiss-data:
+    driver: local
+

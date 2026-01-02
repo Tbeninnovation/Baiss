@@ -1,0 +1,17 @@
+[Unit]
+Description=Baiss local AI desktop backend
+After=network.target
+
+[Service]
+Type=simple
+User=%USER%
+WorkingDirectory=%REPO_ROOT%/core/baiss
+Environment=VIRTUAL_ENV=%REPO_ROOT%/core/baiss/.venv
+ExecStart=%REPO_ROOT%/core/baiss/.venv/bin/python %REPO_ROOT%/core/baiss/shared/python/baiss_agents/run_local.py
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+
+# Replace %USER% and %REPO_ROOT% before installing. Example:
+# ExecStart=/home/joe/Desktop/dev/Baiss/core/baiss/.venv/bin/python /home/joe/Desktop/dev/Baiss/core/baiss/shared/python/baiss_agents/run_local.py

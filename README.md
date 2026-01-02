@@ -88,6 +88,89 @@ Ensure you have the following installed:
 - **.NET 8 SDK**: [Download here](https://dotnet.microsoft.com/download/dotnet/8.0)
 - **Python 3.10+**: [Download here](https://www.python.org/downloads/)
 
+### Linux (Debian) — Full install and run instructions
+
+Follow these steps to install dependencies, build, and run Baiss on a Debian-based system (Debian, Ubuntu, Mint). The instructions assume you have sudo privileges.
+
+- **What this will do:** install system packages (including .NET SDK), set up a Python virtualenv, install Python requirements, build the .NET solution, run the Python backend, and launch the Avalonia UI.
+
+1) Update packages and install system dependencies
+
+```bash
+sudo apt update
+sudo apt install -y \
+   ca-certificates curl gnupg lsb-release wget software-properties-common build-essential \
+   python3 python3-venv python3-pip git libsqlite3-dev libsndfile1 libgomp1 \
+   libgtk-3-0 libgdk-pixbuf2.0-0 libxcursor1 libxrandr2 libxss1 libxinerama1 libatk1.0-0 libatk-bridge2.0-0
+```
+
+2) Install the Microsoft apt repository and .NET 8 SDK
+
+```bash
+wget https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+rm packages-microsoft-prod.deb
+sudo apt update
+sudo apt install -y dotnet-sdk-8.0
+```
+
+If your Debian version differs (Debian 11 / Ubuntu), replace the URL above with the matching Microsoft package for your distribution (see the official .NET install docs).
+
+3) Prepare the Python backend (FastAPI)
+
+```bash
+# from repo root
+cd core/baiss
+python3 -m venv .venv
+. .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+# run the local Python server (run_local.py starts FastAPI / uvicorn)
+python3 shared/python/baiss_agents/run_local.py
+```
+
+4) Build and run the .NET Avalonia UI
+
+Open a new terminal (the backend should be running) and run:
+
+```bash
+# from repo root
+cd Baiss
+dotnet build Baiss.sln -c Release
+cd Baiss.UI
+dotnet run --configuration Release
+```
+
+Notes and tips:
+- First-run: the backend may download model artifacts or create the DuckDB vector store — allow it to finish.
+- GPU/LLM server: if you use a local `llama-server` (llama.cpp), ensure it's installed and configured; the C# launcher expects configured paths in `baiss_config.json`.
+
+Automation scripts
+
+There are helper scripts in `scripts/` to automate these steps on Debian. Make them executable and inspect before running:
+
+```bash
+chmod +x scripts/install_debian.sh
+sudo scripts/install_debian.sh
+```
+
+Run the backend helper (creates venv and starts the server):
+
+```bash
+./scripts/linux/run_backend.sh
+```
+
+Build and run everything with a convenience script (runs backend then UI in foreground):
+
+```bash
+./scripts/linux/build_and_run.sh
+```
+
+Systemd service template
+
+If you want Baiss to run as a user systemd service, use `scripts/service/baiss.service` as a template and adapt paths and user. Then enable with `systemctl --user enable --now baiss.service`.
+
+
 ### Installation
 
 1. **Clone the repository:**

@@ -28,9 +28,30 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework> <!-- net9.0 ===> net8.0 -->
+    <TargetFramework>net10.0</TargetFramework> <!-- net8.0 ===> net10.0 -->
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <SelfContained>true</SelfContained>
+  </PropertyGroup>
+
+  <!-- Platform-specific RuntimeIdentifiers to avoid downloading unnecessary runtimes -->
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <RuntimeIdentifiers>osx-x64;osx-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <RuntimeIdentifiers>linux-x64;linux-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <!-- Fallback for cross-platform CI/CD builds -->
+  <PropertyGroup Condition="'$(RuntimeIdentifiers)' == ''">
+    <RuntimeIdentifiers>win-x64;win-arm64;osx-x64;osx-arm64;linux-x64;linux-arm64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <!-- Define conditional compilation symbols -->
@@ -53,6 +74,14 @@
   <!-- Windows-specific packages -->
   <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' OR '$(RuntimeIdentifier)' == 'win-arm64' OR $([MSBuild]::IsOSPlatform('Windows'))">
     <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.9" />
+    <PackageReference Include="System.Management" Version="9.0.9" />
+    <PackageReference Include="WindowsShortcutFactory" Version="1.2.0" />
   </ItemGroup>
+
+  <!-- Linux-specific adjustments -->
+  <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
+    <!-- Python.NET requires additional configuration on Linux -->
+  </PropertyGroup>
 
 </Project>

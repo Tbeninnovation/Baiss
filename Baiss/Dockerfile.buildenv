@@ -1,0 +1,33 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3 \
+    python3-dev \
+    python3-pip \
+    libpython3-dev \
+    libgconf-2-4 \
+    libappindicator1 \
+    libxtst6 \
+    libxss1 \
+    libnss3 \
+    libgbm1 \
+    libatspi2.0-0 \
+    fonts-liberation \
+    xdg-utils \
+    sqlite3 \
+    libsqlite3-dev \
+    ca-certificates \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+
+# Set build user
+RUN useradd -m -s /bin/bash builder
+RUN chown -R builder:builder /workspace
+
+USER builder
+
